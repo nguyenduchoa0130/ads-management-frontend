@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@components/*": ["./core/components/*"],
+      "@layouts/*": ["./core/layouts/*"],
+      "@pages/*": ["./pages/*"],
+      "@enums/*": ["./shared/enums/*"],
+      "@interfaces/*": ["./shared/interfaces/*"],
+      "@interceptors/*": ["./shared/interceptors/*"],
+      "@utils/*": ["./shared/utils/*"],
+      "@services/*": ["./shared/services/*"]
+    }
+  }
+}
