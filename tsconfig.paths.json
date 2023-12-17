@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@components/*": ["./libs/components/*"],
+      "@layouts/*": ["./libs/layouts/*"],
+      "@pages/*": ["./pages/*"],
+      "@enums/*": ["./libs/enums/*"],
+      "@interfaces/*": ["./libs/interfaces/*"],
+      "@interceptors/*": ["./libs/interceptors/*"],
+      "@utils/*": ["./libs/utils/*"],
+      "@services/*": ["./libs/services/*"],
+      "@hooks/*": ["./libs/hooks/*"]
+    }
+  }
+}
