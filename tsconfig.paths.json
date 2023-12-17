@@ -2,14 +2,15 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "paths": {
-      "@components/*": ["./core/components/*"],
-      "@layouts/*": ["./core/layouts/*"],
+      "@components/*": ["./libs/components/*"],
+      "@layouts/*": ["./libs/layouts/*"],
       "@pages/*": ["./pages/*"],
-      "@enums/*": ["./shared/enums/*"],
-      "@interfaces/*": ["./shared/interfaces/*"],
-      "@interceptors/*": ["./shared/interceptors/*"],
-      "@utils/*": ["./shared/utils/*"],
-      "@services/*": ["./shared/services/*"]
+      "@enums/*": ["./libs/enums/*"],
+      "@interfaces/*": ["./libs/interfaces/*"],
+      "@interceptors/*": ["./libs/interceptors/*"],
+      "@utils/*": ["./libs/utils/*"],
+      "@services/*": ["./libs/services/*"],
+      "@hooks/*": ["./libs/hooks/*"]
     }
   }
 }

@@ -10,6 +10,7 @@ interface AdsInputProps {
   label?: string;
   isPassword?: boolean;
   placeholder?: string;
+  isDisabled?: boolean;
 }
 
 const AdsInput: FC<AdsInputProps> = ({
@@ -18,6 +19,7 @@ const AdsInput: FC<AdsInputProps> = ({
   control,
   error = null,
   placeholder = '',
+  isDisabled = false,
   isPassword = false,
   label = 'Form Control Label',
 }) => {
@@ -30,9 +32,14 @@ const AdsInput: FC<AdsInputProps> = ({
           control={control}
           render={({ field }) =>
             isPassword ? (
-              <Input.Password placeholder={placeholder} {...field} size='large' />
+              <Input.Password
+                {...field}
+                size='large'
+                disabled={isDisabled}
+                placeholder={placeholder}
+              />
             ) : (
-              <Input placeholder={placeholder} {...field} size='large' />
+              <Input {...field} size='large' disabled={isDisabled} placeholder={placeholder} />
             )
           }
         />

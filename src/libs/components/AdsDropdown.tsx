@@ -8,9 +8,12 @@ interface FormControlDropdownProps {
   control: any;
   name: string;
   label?: string;
+  options: any[];
+  isMultiple?: boolean;
+  isDisabled?: boolean;
   placeholder?: string;
   isShowSearch?: boolean;
-  options: any[];
+  isAllowClear?: boolean;
 }
 
 const FormControlDropdown: FC<FormControlDropdownProps> = ({
@@ -20,6 +23,9 @@ const FormControlDropdown: FC<FormControlDropdownProps> = ({
   options = [],
   error = null,
   isShowSearch,
+  isDisabled = false,
+  isMultiple = false,
+  isAllowClear = true,
   label = 'Form Control Label',
   placeholder = 'Dropdown placeholder',
 }) => {
@@ -33,10 +39,13 @@ const FormControlDropdown: FC<FormControlDropdownProps> = ({
           render={({ field }) => (
             <Select
               {...field}
-              placeholder={placeholder}
-              options={options}
-              showSearch={isShowSearch}
               size='large'
+              options={options}
+              disabled={isDisabled}
+              placeholder={placeholder}
+              showSearch={isShowSearch}
+              allowClear={isAllowClear}
+              mode={isMultiple ? 'multiple' : null}
             />
           )}
         />

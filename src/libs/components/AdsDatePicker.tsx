@@ -29,10 +29,10 @@ const AdsDatePicker: FC<AdsDatePickerProps> = ({
           render={({ field }) => (
             <DatePicker
               {...field}
-              placeholder={placeholder}
-              format='MM/DD/YYYY'
-              className='w-100'
               size='large'
+              className='w-100'
+              format='DD/MM/YYYY'
+              placeholder={placeholder}
             />
           )}
         />
