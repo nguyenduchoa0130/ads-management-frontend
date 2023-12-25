@@ -4,8 +4,8 @@ import TableColumn from '@interfaces/table-column';
 import { Input, Table } from 'antd';
 import { FC, useMemo, useState } from 'react';
 
-interface AdsTableProps {
-  dataSrc: any[];
+interface AdsDynamicTableProps<T> {
+  dataSrc: T[];
   rowKey: string;
   cols: TableColumn[];
   pageSize?: number;
@@ -13,7 +13,7 @@ interface AdsTableProps {
   searchByFields?: string[];
 }
 
-const AdsTable: FC<AdsTableProps> = ({
+const AdsDynamicTable: FC<AdsDynamicTableProps<any>> = ({
   cols = [],
   dataSrc = [],
   rowKey = null,
@@ -64,4 +64,4 @@ const AdsTable: FC<AdsTableProps> = ({
   );
 };
 
-export default AdsTable;
+export default AdsDynamicTable;

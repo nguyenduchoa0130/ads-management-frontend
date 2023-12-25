@@ -33,16 +33,16 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
     icon: <TeamOutlined />,
   },
   {
-    path: 'phan-cong-khu-vuc',
-    label: 'Phân công khu vực',
-    activeKey: 'phan-cong-khu-vuc',
-    icon: <FormOutlined />,
-  },
-  {
     path: 'ql-khu-vuc',
     label: 'Quản lý khu vực',
     activeKey: 'ql-khu-vuc',
     icon: <PieChartOutlined />,
+  },
+  {
+    path: 'phan-cong-khu-vuc',
+    label: 'Phân công khu vực',
+    activeKey: 'phan-cong-khu-vuc',
+    icon: <FormOutlined />,
   },
   {
     path: 'ql-danh-sach-loai',
