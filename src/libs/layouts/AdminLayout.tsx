@@ -1,13 +1,14 @@
 import {
   AppstoreOutlined,
   BarChartOutlined,
+  EditOutlined,
   FlagOutlined,
   FormOutlined,
   LoginOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PieChartOutlined,
-  PullRequestOutlined,
+  QuestionCircleOutlined,
   TeamOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
@@ -24,6 +25,18 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
     label: 'Thống kê',
     activeKey: 'thong-ke',
     icon: <BarChartOutlined />,
+  },
+  {
+    path: 'ql-tai-khoan',
+    label: 'Quản lý tài khoản',
+    activeKey: 'ql-tai-khoan',
+    icon: <TeamOutlined />,
+  },
+  {
+    path: 'phan-cong-khu-vuc',
+    label: 'Phân công khu vực',
+    activeKey: 'phan-cong-khu-vuc',
+    icon: <FormOutlined />,
   },
   {
     path: 'ql-khu-vuc',
@@ -50,28 +63,16 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
     icon: <AppstoreOutlined />,
   },
   {
-    path: 'ql-tai-khoan',
-    label: 'Quản lý tài khoản',
-    activeKey: 'ql-tai-khoan',
-    icon: <TeamOutlined />,
-  },
-  {
-    path: 'phan-cong-khu-vuc',
-    label: 'Phân công khu vực',
-    activeKey: 'phan-cong-khu-vuc',
-    icon: <FormOutlined />,
-  },
-  {
     path: 'yc-chinh-sua',
     label: 'Yêu cầu chỉnh sửa quảng cáo',
     activeKey: 'yc-chinh-sua',
-    icon: <PullRequestOutlined />,
+    icon: <EditOutlined />,
   },
   {
     path: 'yc-cap-phep',
     label: 'Yêu cầu cấp phép quảng cáo',
     activeKey: 'yc-cap-phep',
-    icon: <PullRequestOutlined />,
+    icon: <QuestionCircleOutlined />,
   },
 ];
 
