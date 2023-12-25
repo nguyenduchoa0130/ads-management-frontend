@@ -1,6 +1,7 @@
 import {
   AppstoreOutlined,
   BarChartOutlined,
+  DownOutlined,
   EditOutlined,
   FlagOutlined,
   FormOutlined,
@@ -15,7 +16,7 @@ import {
 import { AdminRole } from '@enums/admin-role';
 import { LayoutMenuItem } from '@interfaces/layout-menu-item';
 import titleMap from '@utils/title-map.util';
-import { Button, Layout, Menu, Tooltip, Typography } from 'antd';
+import { Button, Dropdown, Layout, Menu, Tooltip, Typography } from 'antd';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -104,6 +105,21 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole }) => {
     }
   }, []);
 
+  const dropdownMenuItems = useMemo(() => {
+    return [
+      {
+        key: '1',
+        label: (
+          <Tooltip title='Đăng xuất' arrow={true}>
+            <Button type='primary' danger size='large' onClick={handleLogout} className='w-full'>
+              <LoginOutlined /> Đăng xuất
+            </Button>
+          </Tooltip>
+        ),
+      },
+    ];
+  }, []);
+
   useEffect(() => {
     const segment = location.pathname.split('/').pop();
     setCurrentPage(segment);
@@ -152,11 +168,23 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole }) => {
                 <Typography.Title className='!m-0 uppercase'>
                   {titleMap.get(currentPage)}
                 </Typography.Title>
-                <Tooltip title='Đăng xuất' arrow={true}>
-                  <Button type='primary' danger size='large' onClick={handleLogout}>
-                    <LoginOutlined /> Đăng xuất
-                  </Button>
-                </Tooltip>
+                <div className='flex items-center justify-center'>
+                  <Dropdown
+                    arrow
+                    menu={{
+                      items: dropdownMenuItems,
+                    }}
+                    placement='bottom'>
+                    <Button
+                      type='text'
+                      size='large'
+                      icon={<DownOutlined />}
+                      className='flex  flex-row-reverse items-center justify-center gap-2'>
+                      <span className='font-medium text-green-500'>Department Officer</span>
+                      <span>Xin chào,</span>
+                    </Button>
+                  </Dropdown>
+                </div>
               </div>
               <div className='p-4'>
                 <Outlet />
