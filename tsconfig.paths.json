@@ -10,7 +10,9 @@
       "@interceptors/*": ["./libs/interceptors/*"],
       "@utils/*": ["./libs/utils/*"],
       "@services/*": ["./libs/services/*"],
-      "@hooks/*": ["./libs/hooks/*"]
+      "@hooks/*": ["./libs/hooks/*"],
+      "@slices/*": ["./libs/stores/slices/*"],
+      "@selectors/*": ["./libs/stores/selectors/*"]
     }
   }
 }
