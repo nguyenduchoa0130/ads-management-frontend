@@ -23,7 +23,7 @@ const Areas = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: { name: '' } });
+  } = useForm({ defaultValues: { name: '', lat: null, lng: null } });
 
   const deleteDistrict = async (district: AdsDistrict) => {
     try {
@@ -130,12 +130,11 @@ const Areas = () => {
       <Button size='large' icon={<PlusOutlined />} className='mb-3' onClick={openNewDistrictModal}>
         Thêm quận
       </Button>
-      <hr />
       <AdsDynamicTable dataSrc={districts} cols={tableColumns} />
       <AdsFormModal
         width='50vw'
         isOpen={isOpen}
-        title='Thêm Quận'
+        title='THÊM QUẬN'
         cancelBtnText='Đóng'
         confirmBtnText='Thêm'
         onCancel={clearFormAndCloseModal}
@@ -149,10 +148,27 @@ const Areas = () => {
             placeholder='Nhập tên quận'
             rules={{ required: 'Không được để trống' }}
           />
-          <div className='w-full h-[500px]'>
-            <AdsMap />
+          <div className='grid grid-cols-2 gap-4 divide-x divide-gray-300'>
+            <AdsInput
+              control={control}
+              error={errors.lng}
+              name='lng'
+              label='Kinh độ'
+              placeholder='Kinh độ'
+              rules={{ required: 'Không được để trống' }}
+            />
+            <AdsInput
+              control={control}
+              error={errors.lat}
+              name='lat'
+              label='Vĩ độ'
+              placeholder='Vĩ độ'
+              rules={{ required: 'Không được để trống' }}
+            />
           </div>
-          <AdsMap />
+          <div className='pt-1 pb-2 h-[400px]'>
+            <AdsMap onLocationChange={console.log} />
+          </div>
         </Form>
       </AdsFormModal>
     </>

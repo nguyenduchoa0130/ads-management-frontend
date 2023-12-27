@@ -7,10 +7,16 @@ import { Button, Input, Tooltip } from 'antd';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 
 interface AdsMapProps {
+  isEnableSearch?: boolean;
+  isHomePage?: boolean;
   onLocationChange?: (location: AdsLocation) => any;
 }
 
-const AdsMap: FC<AdsMapProps> = ({ onLocationChange = (_) => {} }) => {
+const AdsMap: FC<AdsMapProps> = ({
+  isHomePage = false,
+  isEnableSearch = true,
+  onLocationChange = (_) => {},
+}) => {
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState<AdsLocation>(null);
   const [defaultCenter, setDefaultCenter] = useState<AdsLocation>(null);
@@ -76,38 +82,40 @@ const AdsMap: FC<AdsMapProps> = ({ onLocationChange = (_) => {} }) => {
       <div className='h-full w-full relative'>
         {isLoaded ? (
           <>
-            <div className='absolute top-2 z-10 left-16'>
-              <Autocomplete
-                onLoad={(autocomplete) => {
-                  autocompleteRef.current = autocomplete;
-                  autocomplete.setFields(['place_id', 'formatted_address']);
-                }}
-                onPlaceChanged={() => {
-                  const selectedPlace = autocompleteRef.current.getPlace();
-                  handlePlaceSelect(selectedPlace);
-                }}>
-                <div className='relative flex items-center justify-start gap-2 w-[500px]'>
-                  <span className='absolute left-4 z-10'>
-                    <SearchOutlined />
-                  </span>
-                  <Input
-                    size='large'
-                    placeholder='Tìm kiếm địa chỉ'
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className='pl-10'
-                  />
-                  <Tooltip title='Vị trí hiện tại'>
-                    <Button
+            {isEnableSearch && (
+              <div className={`absolute top-2 z-10 left-${isHomePage ? '16' : '2'}`}>
+                <Autocomplete
+                  onLoad={(autocomplete) => {
+                    autocompleteRef.current = autocomplete;
+                    autocomplete.setFields(['place_id', 'formatted_address']);
+                  }}
+                  onPlaceChanged={() => {
+                    const selectedPlace = autocompleteRef.current.getPlace();
+                    handlePlaceSelect(selectedPlace);
+                  }}>
+                  <div className='relative flex items-center justify-start gap-2 w-[500px]'>
+                    <span className='absolute left-4 z-10'>
+                      <SearchOutlined />
+                    </span>
+                    <Input
                       size='large'
-                      icon={<AimOutlined />}
-                      shape='circle'
-                      onClick={() => setCenter({ ...defaultCenter })}
+                      placeholder='Tìm kiếm địa chỉ'
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className='pl-10'
                     />
-                  </Tooltip>
-                </div>
-              </Autocomplete>
-            </div>
+                    <Tooltip title='Vị trí hiện tại'>
+                      <Button
+                        size='large'
+                        icon={<AimOutlined />}
+                        shape='circle'
+                        onClick={() => setCenter({ ...defaultCenter })}
+                      />
+                    </Tooltip>
+                  </div>
+                </Autocomplete>
+              </div>
+            )}
             <GoogleMap
               mapContainerStyle={{ width: '100%', height: '100%' }}
               center={center}
