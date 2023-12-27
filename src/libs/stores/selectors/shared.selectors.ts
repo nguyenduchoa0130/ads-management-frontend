@@ -3,3 +3,7 @@ import { RootState } from 'app/store';
 
 const selectorSharedFeature = (state: RootState) => state.shared;
 export const selectIsLoading = createSelector(selectorSharedFeature, (shared) => shared.isLoading);
+export const selectCurrentUser = createSelector(
+  selectorSharedFeature,
+  (shared) => shared.currentUser,
+);

@@ -13,7 +13,8 @@
       "@hooks/*": ["./libs/hooks/*"],
       "@slices/*": ["./libs/stores/slices/*"],
       "@selectors/*": ["./libs/stores/selectors/*"],
-      "@appHook/*": ["./app/*"]
+      "@appHook/*": ["./app/*"],
+      "@dialogs/*": ["./libs/dialogs/*"]
     }
   }
 }

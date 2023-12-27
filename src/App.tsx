@@ -3,12 +3,13 @@ import LoadingSpinner from '@components/LoadingSpinner';
 import { AdminRole } from '@enums/admin-role';
 import AdminLayout from '@layouts/AdminLayout';
 import ClientLayout from '@layouts/ClientLayout';
-import PageNotFound from '@pages/page-not-found';
 import { lazy } from 'react';
 import { useRoutes } from 'react-router-dom';
 
 // Client
-const Home = lazy(() => import('./pages/home'));
+const Home = lazy(() => import('./pages/Home'));
+const MyProfile = lazy(() => import('./pages/MyProfile'));
+const PageNotFound = lazy(() => import('./pages/PageNotFound'));
 
 // Admin/Department
 const Areas = lazy(() => import('./pages/officers/departments/Areas'));
@@ -85,11 +86,15 @@ const App = () => {
           index: true,
           element: <LazyLoadComponent component={<Home />} />,
         },
+        {
+          path: 'thong-tin-ca-nhan',
+          element: <LazyLoadComponent component={<MyProfile />} />,
+        },
       ],
     },
     {
       path: '*',
-      element: <PageNotFound />,
+      element: <LazyLoadComponent component={<PageNotFound />} />,
     },
   ]);
   return (
