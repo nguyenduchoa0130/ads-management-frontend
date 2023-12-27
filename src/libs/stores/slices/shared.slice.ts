@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 interface SharedState {
   isLoading?: boolean;
+  currentUser?: any;
 }
 
 const initialState: SharedState = {
@@ -12,6 +13,7 @@ const sharedSlice = createSlice({
   name: 'shared',
   initialState,
   reducers: {
+    setCurrentUser: (state, payload) => {},
     showLoading: (state) => {
       state.isLoading = true;
     },

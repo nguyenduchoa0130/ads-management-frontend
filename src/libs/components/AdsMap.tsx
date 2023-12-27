@@ -47,14 +47,18 @@ const AdsMap: FC<AdsMapProps> = () => {
 
   return (
     <>
-      <div className='h-full w-full'>
+      <div className='h-full w-full relative'>
         {isLoaded ? (
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
-            center={center}
-            zoom={15}
-            onLoad={handleOnLoadMap}
-            onUnmount={handleOnDestroyMap}></GoogleMap>
+          <>
+            <GoogleMap
+              mapContainerStyle={{ width: '100%', height: '100%' }}
+              center={center}
+              zoom={15}
+              onLoad={handleOnLoadMap}
+              onUnmount={handleOnDestroyMap}
+              mapContainerClassName='google-map'
+            />
+          </>
         ) : (
           <></>
         )}

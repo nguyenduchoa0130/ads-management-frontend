@@ -53,7 +53,7 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
   },
   {
     path: 'ql-diem-dat-quang-cao',
-    label: 'Quản lý điểm đạt quảng cáo',
+    label: 'Quản lý điểm đặt quảng cáo',
     activeKey: 'ql-diem-dat-quang-cao',
     icon: <FlagOutlined />,
   },

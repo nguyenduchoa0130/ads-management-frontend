@@ -3,6 +3,7 @@ import { useAppDispatch } from '@appHook/hooks';
 import AdsDynamicTable from '@components/AdsDynamicTable';
 import AdsFormModal from '@components/AdsFormModal';
 import AdsInput from '@components/AdsInput';
+import AdsMap from '@components/AdsMap';
 import AlertType from '@enums/alert-type';
 import { AdsDistrict } from '@interfaces/ads-district';
 import TableColumn from '@interfaces/table-column';
@@ -132,6 +133,7 @@ const Areas = () => {
       <hr />
       <AdsDynamicTable dataSrc={districts} cols={tableColumns} />
       <AdsFormModal
+        width='50vw'
         isOpen={isOpen}
         title='Thêm Quận'
         cancelBtnText='Đóng'
@@ -147,6 +149,10 @@ const Areas = () => {
             placeholder='Nhập tên quận'
             rules={{ required: 'Không được để trống' }}
           />
+          <div className='w-full h-[500px]'>
+            <AdsMap />
+          </div>
+          <AdsMap />
         </Form>
       </AdsFormModal>
     </>
