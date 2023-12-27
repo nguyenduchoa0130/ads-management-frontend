@@ -16,3 +16,7 @@ body,
 body * {
   font-family: 'Poppins', sans-serif !important;
 }
+
+.swal2-container {
+  z-index: 9999;
+}

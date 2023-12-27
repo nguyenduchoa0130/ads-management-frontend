@@ -12,7 +12,8 @@
       "@services/*": ["./libs/services/*"],
       "@hooks/*": ["./libs/hooks/*"],
       "@slices/*": ["./libs/stores/slices/*"],
-      "@selectors/*": ["./libs/stores/selectors/*"]
+      "@selectors/*": ["./libs/stores/selectors/*"],
+      "@appHook/*": ["./app/*"]
     }
   }
 }

@@ -1,4 +1,5 @@
 import LazyLoadComponent from '@components/LazyLoadComponent';
+import LoadingSpinner from '@components/LoadingSpinner';
 import { AdminRole } from '@enums/admin-role';
 import AdminLayout from '@layouts/AdminLayout';
 import ClientLayout from '@layouts/ClientLayout';
@@ -91,7 +92,12 @@ const App = () => {
       element: <PageNotFound />,
     },
   ]);
-  return <>{routes}</>;
+  return (
+    <>
+      {routes}
+      <LoadingSpinner />
+    </>
+  );
 };
 
 export default App;

@@ -6,7 +6,7 @@ import { FC, useMemo, useState } from 'react';
 
 interface AdsDynamicTableProps<T> {
   dataSrc: T[];
-  rowKey: string;
+  rowKey?: string;
   cols: TableColumn[];
   pageSize?: number;
   hasFilter?: boolean;
@@ -16,7 +16,7 @@ interface AdsDynamicTableProps<T> {
 const AdsDynamicTable: FC<AdsDynamicTableProps<any>> = ({
   cols = [],
   dataSrc = [],
-  rowKey = null,
+  rowKey = '_id',
   pageSize = 10,
   hasFilter = false,
   searchByFields = [],
