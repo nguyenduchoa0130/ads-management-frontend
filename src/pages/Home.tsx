@@ -73,7 +73,7 @@ const Home = () => {
       },
       {
         action: 'navigate',
-        path: '/thong-tin-ca-nha',
+        path: '/thong-tin-ca-nhan',
         isLoggedIn: true,
         icon: <UserOutlined />,
         label: 'Thông tin tài khoản',
