@@ -3,7 +3,6 @@ import { useAppDispatch } from "@appHook/hooks";
 import AdsDynamicTable from "@components/AdsDynamicTable";
 import AdsFormModal from "@components/AdsFormModal";
 import AdsInput from "@components/AdsInput";
-import AdsMap from "@components/AdsMap";
 import AlertType from "@enums/alert-type";
 import { AdsDistrict } from "@interfaces/ads-district";
 import { AdsType } from "@interfaces/ads-type";
@@ -25,6 +24,9 @@ const AdTypes = () => {
   const [spaceFormats, setSpaceFormats] = useState<AdsType[]>([]);
   const [reportFormats, setReportFormats] = useState<AdsType[]>([]);
   const [surfaceTypes, setSurfaceTypes] = useState<AdsType[]>([]);
+
+  const [reloadTrigger, setReloadTrigger] = useState(false);
+
   const dispatch = useAppDispatch();
   const {
     reset,
@@ -33,6 +35,8 @@ const AdTypes = () => {
     formState: { errors },
   } = useForm({ defaultValues: { name: '' } });
 
+
+  //set event delete
   const deleteSpaceFormat = async (district: AdsType) => {
     try {
       const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.name} không?`;
@@ -40,7 +44,8 @@ const AdTypes = () => {
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
         await SpaceFormatService.remove(district._id);
-        setSpaceTypes(spaceTypes.filter((item) => item._id !== district._id));
+        setReloadTrigger((prev) => !prev);
+
       }
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
@@ -49,7 +54,95 @@ const AdTypes = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const tableColumns = useMemo(
+  const deleteSpaceType = async (district: AdsType) => {
+    try {
+      const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.name} không?`;
+      const { isConfirmed } = await AlertService.showMessage(AlertType.Question, msg);
+      if (isConfirmed) {
+        dispatch(sharedActions.showLoading());
+        await SpaceTypeService.remove(district._id);
+        setReloadTrigger((prev) => !prev);
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  const deleteReportFormat = async (district: AdsType) => {
+    try {
+      const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.name} không?`;
+      const { isConfirmed } = await AlertService.showMessage(AlertType.Question, msg);
+      if (isConfirmed) {
+        dispatch(sharedActions.showLoading());
+        await ReportFormatService.remove(district._id);
+        setReloadTrigger((prev) => !prev);
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  const deleteSurfaceType = async (district: AdsType) => {
+    try {
+      const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.name} không?`;
+      const { isConfirmed } = await AlertService.showMessage(AlertType.Question, msg);
+      if (isConfirmed) {
+        dispatch(sharedActions.showLoading());
+        await SurfaceTypeService.remove(district._id);
+        setReloadTrigger((prev) => !prev);
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+
+
+  //render column
+  const tableColumnsSpaceType = useMemo(
+    (): TableColumn[] => [
+      {
+        title: '#',
+        dataIndex: '_id',
+        key: '_id',
+        render: (value: string) => value.slice(0, 8),
+      },
+      {
+        title: 'Tên loại',
+        dataIndex: 'name',
+        key: 'name',
+      },
+      {
+        title: null,
+        dataIndex: null,
+        key: 'actions',
+        render: (_, district: AdsDistrict) => (
+          <Space>
+            <Tooltip title='Cập nhật'>
+              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+            </Tooltip>
+            <Tooltip title='Xoá'>
+              <Button
+                type='primary'
+                danger
+                size='large'
+                icon={<DeleteOutlined />}
+                shape='circle'
+                onClick={() => deleteSpaceType(district)}></Button>
+            </Tooltip>
+          </Space>
+        ),
+      },
+    ],
+    [spaceTypes.length],
+  );
+  const tableColumnsSpaceFormat = useMemo(
     (): TableColumn[] => [
       {
         title: '#',
@@ -86,14 +179,92 @@ const AdTypes = () => {
     ],
     [spaceTypes.length],
   );
+  const tableColumnsReportFormat = useMemo(
+    (): TableColumn[] => [
+      {
+        title: '#',
+        dataIndex: '_id',
+        key: '_id',
+        render: (value: string) => value.slice(0, 8),
+      },
+      {
+        title: 'Tên loại',
+        dataIndex: 'name',
+        key: 'name',
+      },
+      {
+        title: null,
+        dataIndex: null,
+        key: 'actions',
+        render: (_, district: AdsDistrict) => (
+          <Space>
+            <Tooltip title='Cập nhật'>
+              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+            </Tooltip>
+            <Tooltip title='Xoá'>
+              <Button
+                type='primary'
+                danger
+                size='large'
+                icon={<DeleteOutlined />}
+                shape='circle'
+                onClick={() => deleteReportFormat(district)}></Button>
+            </Tooltip>
+          </Space>
+        ),
+      },
+    ],
+    [spaceTypes.length],
+  );
+  const tableColumnsSurfaceType = useMemo(
+    (): TableColumn[] => [
+      {
+        title: '#',
+        dataIndex: '_id',
+        key: '_id',
+        render: (value: string) => value.slice(0, 8),
+      },
+      {
+        title: 'Tên loại',
+        dataIndex: 'name',
+        key: 'name',
+      },
+      {
+        title: null,
+        dataIndex: null,
+        key: 'actions',
+        render: (_, district: AdsDistrict) => (
+          <Space>
+            <Tooltip title='Cập nhật'>
+              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+            </Tooltip>
+            <Tooltip title='Xoá'>
+              <Button
+                type='primary'
+                danger
+                size='large'
+                icon={<DeleteOutlined />}
+                shape='circle'
+                onClick={() => deleteSurfaceType(district)}></Button>
+            </Tooltip>
+          </Space>
+        ),
+      },
+    ],
+    [spaceTypes.length],
+  );
 
 
-  const createDistrict = async (formValue: { name: string }): Promise<void> => {
+  // set button create
+  const createSpaceType = async (formValue: { name: string }): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      const newDistrict = await SpaceFormatService.create(formValue);
+      const newDistrict = await SpaceTypeService.create(formValue);
+      console.log(newDistrict);
       clearFormAndCloseModal();
-      setSpaceTypes([newDistrict, ...spaceTypes]);
+      setReloadTrigger((prev) => !prev);
+
+
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
       AlertService.showMessage(AlertType.Error, msg);
@@ -101,6 +272,55 @@ const AdTypes = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
+
+  const createSpaceFormat = async (formValue: { name: string }): Promise<void> => {
+    try {
+      dispatch(sharedActions.showLoading());
+      const newDistrict = await SpaceFormatService.create(formValue);
+      clearFormAndCloseModal();
+      setReloadTrigger((prev) => !prev);
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  const createReportFormat = async (formValue: { name: string }): Promise<void> => {
+    try {
+      dispatch(sharedActions.showLoading());
+      const newDistrict = await ReportFormatService.create(formValue);
+      console.log(newDistrict);
+      clearFormAndCloseModal();
+      setReloadTrigger((prev) => !prev);
+
+
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+
+  const createSurfaceType = async (formValue: { name: string }): Promise<void> => {
+    try {
+      dispatch(sharedActions.showLoading());
+      const newDistrict = await SurfaceTypeService.create(formValue);
+      clearFormAndCloseModal();
+      setReloadTrigger(true);
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+
+
   //set open modal
   const openNewSpaceTypeModal = useCallback(() => {
     setSpaceTypeOpen(true);
@@ -110,7 +330,7 @@ const AdTypes = () => {
 
   }, []);
 
-  
+
   const openNewSpaceFormatModal = useCallback(() => {
     setSpaceTypeOpen(false);
     setSpaceFormatOpen(true);
@@ -195,12 +415,14 @@ const AdTypes = () => {
         dispatch(sharedActions.hideLoading());
       }
     };
+
+
     getSpaceFormat();
     getSpaceType();
     getSurfaceType();
     getReportFormat();
 
-  }, []);
+  }, [reloadTrigger]);
 
   const onChange = (key: string) => {
     console.log(key);
@@ -209,22 +431,22 @@ const AdTypes = () => {
     {
       key: '1',
       label: 'Space Types',
-      children: <AdsDynamicTable dataSrc={spaceTypes} cols={tableColumns} />,
+      children: <AdsDynamicTable dataSrc={spaceTypes} cols={tableColumnsSpaceType} />,
     },
     {
       key: '2',
       label: 'Space Formats',
-      children:     <AdsDynamicTable dataSrc={spaceFormats} cols={tableColumns} />,
+      children: <AdsDynamicTable dataSrc={spaceFormats} cols={tableColumnsSpaceFormat} />,
     },
     {
       key: '3',
       label: 'Surface Types',
-      children:  <AdsDynamicTable dataSrc={surfaceTypes} cols={tableColumns} />,
+      children: <AdsDynamicTable dataSrc={surfaceTypes} cols={tableColumnsSurfaceType} />,
     },
     {
       key: '4',
       label: 'Report Formats',
-      children:     <AdsDynamicTable dataSrc={reportFormats} cols={tableColumns} />,
+      children: <AdsDynamicTable dataSrc={reportFormats} cols={tableColumnsReportFormat} />,
     },
   ];
   return (
@@ -249,10 +471,10 @@ const AdTypes = () => {
 
       <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
 
-      
-  
-     
-   
+
+
+
+
 
 
       <AdsFormModal
@@ -262,7 +484,7 @@ const AdTypes = () => {
         cancelBtnText='Đóng'
         confirmBtnText='Thêm'
         onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createDistrict)}>
+        onSubmit={handleSubmit(createSpaceType)}>
         <Form layout='vertical'>
           <AdsInput
             control={control}
@@ -282,7 +504,7 @@ const AdTypes = () => {
         cancelBtnText='Đóng'
         confirmBtnText='Thêm'
         onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createDistrict)}>
+        onSubmit={handleSubmit(createSpaceFormat)}>
         <Form layout='vertical'>
           <AdsInput
             control={control}
@@ -303,7 +525,7 @@ const AdTypes = () => {
         cancelBtnText='Đóng'
         confirmBtnText='Thêm'
         onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createDistrict)}>
+        onSubmit={handleSubmit(createReportFormat)}>
         <Form layout='vertical'>
           <AdsInput
             control={control}
@@ -324,7 +546,7 @@ const AdTypes = () => {
         cancelBtnText='Đóng'
         confirmBtnText='Thêm'
         onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createDistrict)}>
+        onSubmit={handleSubmit(createSurfaceType)}>
         <Form layout='vertical'>
           <AdsInput
             control={control}
@@ -336,7 +558,7 @@ const AdTypes = () => {
           />
         </Form>
       </AdsFormModal>
-      
+
 
 
     </>
