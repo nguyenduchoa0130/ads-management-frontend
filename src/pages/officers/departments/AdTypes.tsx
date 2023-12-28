@@ -6,11 +6,12 @@ import AdsInput from "@components/AdsInput";
 import AdsMap from "@components/AdsMap";
 import AlertType from "@enums/alert-type";
 import { AdsDistrict } from "@interfaces/ads-district";
+import { AdsType } from "@interfaces/ads-type";
 import TableColumn from "@interfaces/table-column";
 import AlertService from "@services/alert.service";
-import { SpaceFormatService, SpaceTypeService } from "@services/types.service";
+import { ReportFormatService, SpaceFormatService, SpaceTypeService, SurfaceTypeService } from "@services/types.service";
 import { sharedActions } from "@slices/shared.slice";
-import { Space, Tooltip, Button, Form } from "antd";
+import { Space, Tooltip, Button, Form, TabsProps, Tabs } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -20,7 +21,10 @@ const AdTypes = () => {
   const [isSpaceFormatOpen, setSpaceFormatOpen] = useState<boolean>(false);
   const [isReportFormatOpen, setReportFormatOpen] = useState<boolean>(false);
 
-  const [districts, setDistricts] = useState<AdsDistrict[]>([]);
+  const [spaceTypes, setSpaceTypes] = useState<AdsType[]>([]);
+  const [spaceFormats, setSpaceFormats] = useState<AdsType[]>([]);
+  const [reportFormats, setReportFormats] = useState<AdsType[]>([]);
+  const [surfaceTypes, setSurfaceTypes] = useState<AdsType[]>([]);
   const dispatch = useAppDispatch();
   const {
     reset,
@@ -29,14 +33,14 @@ const AdTypes = () => {
     formState: { errors },
   } = useForm({ defaultValues: { name: '' } });
 
-  const deleteSpaceFormat = async (district: AdsDistrict) => {
+  const deleteSpaceFormat = async (district: AdsType) => {
     try {
       const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.name} không?`;
       const { isConfirmed } = await AlertService.showMessage(AlertType.Question, msg);
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
         await SpaceFormatService.remove(district._id);
-        setDistricts(districts.filter((item) => item._id !== district._id));
+        setSpaceTypes(spaceTypes.filter((item) => item._id !== district._id));
       }
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
@@ -54,14 +58,9 @@ const AdTypes = () => {
         render: (value: string) => value.slice(0, 8),
       },
       {
-        title: 'Tên Quận',
+        title: 'Tên loại',
         dataIndex: 'name',
         key: 'name',
-      },
-      {
-        title: 'Số lượng phường',
-        dataIndex: 'numberOfWards',
-        key: 'numberOfWards',
       },
       {
         title: null,
@@ -85,14 +84,16 @@ const AdTypes = () => {
         ),
       },
     ],
-    [districts.length],
+    [spaceTypes.length],
   );
+
+
   const createDistrict = async (formValue: { name: string }): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
       const newDistrict = await SpaceFormatService.create(formValue);
       clearFormAndCloseModal();
-      setDistricts([newDistrict, ...districts]);
+      setSpaceTypes([newDistrict, ...spaceTypes]);
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
       AlertService.showMessage(AlertType.Error, msg);
@@ -150,7 +151,7 @@ const AdTypes = () => {
       try {
         dispatch(sharedActions.showLoading());
         const districts = await SpaceTypeService.getAll();
-        setDistricts(districts);
+        setSpaceTypes(districts);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
         AlertService.showMessage(AlertType.Error, msg);
@@ -162,7 +163,31 @@ const AdTypes = () => {
       try {
         dispatch(sharedActions.showLoading());
         const districts = await SpaceFormatService.getAll();
-        setDistricts(districts);
+        setSpaceFormats(districts);
+      } catch (error) {
+        const msg = error?.response?.data?.message || error.message;
+        AlertService.showMessage(AlertType.Error, msg);
+      } finally {
+        dispatch(sharedActions.hideLoading());
+      }
+    };
+    const getReportFormat = async () => {
+      try {
+        dispatch(sharedActions.showLoading());
+        const districts = await ReportFormatService.getAll();
+        setReportFormats(districts);
+      } catch (error) {
+        const msg = error?.response?.data?.message || error.message;
+        AlertService.showMessage(AlertType.Error, msg);
+      } finally {
+        dispatch(sharedActions.hideLoading());
+      }
+    };
+    const getSurfaceType = async () => {
+      try {
+        dispatch(sharedActions.showLoading());
+        const districts = await SurfaceTypeService.getAll();
+        setSurfaceTypes(districts);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
         AlertService.showMessage(AlertType.Error, msg);
@@ -172,11 +197,39 @@ const AdTypes = () => {
     };
     getSpaceFormat();
     getSpaceType();
+    getSurfaceType();
+    getReportFormat();
 
   }, []);
 
+  const onChange = (key: string) => {
+    console.log(key);
+  };
+  const items: TabsProps['items'] = [
+    {
+      key: '1',
+      label: 'Space Types',
+      children: <AdsDynamicTable dataSrc={spaceTypes} cols={tableColumns} />,
+    },
+    {
+      key: '2',
+      label: 'Space Formats',
+      children:     <AdsDynamicTable dataSrc={spaceFormats} cols={tableColumns} />,
+    },
+    {
+      key: '3',
+      label: 'Surface Types',
+      children:  <AdsDynamicTable dataSrc={surfaceTypes} cols={tableColumns} />,
+    },
+    {
+      key: '4',
+      label: 'Report Formats',
+      children:     <AdsDynamicTable dataSrc={reportFormats} cols={tableColumns} />,
+    },
+  ];
   return (
     <>
+
       <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSpaceTypeModal}>
         Thêm SpaceType
       </Button>
@@ -193,7 +246,13 @@ const AdTypes = () => {
       </Button>
 
       <hr />
-      <AdsDynamicTable dataSrc={districts} cols={tableColumns} />
+
+      <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
+
+      
+  
+     
+   
 
 
       <AdsFormModal
@@ -278,6 +337,8 @@ const AdTypes = () => {
         </Form>
       </AdsFormModal>
       
+
+
     </>
   );
 };
