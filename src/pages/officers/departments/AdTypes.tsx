@@ -8,15 +8,18 @@ import AlertType from "@enums/alert-type";
 import { AdsDistrict } from "@interfaces/ads-district";
 import TableColumn from "@interfaces/table-column";
 import AlertService from "@services/alert.service";
-import DistrictsService from "@services/districts.service";
-import SpaceTypeService from "@services/types.service";
+import { SpaceFormatService, SpaceTypeService } from "@services/types.service";
 import { sharedActions } from "@slices/shared.slice";
 import { Space, Tooltip, Button, Form } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 const AdTypes = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isSurfaceTypeOpen, setSurfaceTypeOpen] = useState<boolean>(false);
+  const [isSpaceTypeOpen, setSpaceTypeOpen] = useState<boolean>(false);
+  const [isSpaceFormatOpen, setSpaceFormatOpen] = useState<boolean>(false);
+  const [isReportFormatOpen, setReportFormatOpen] = useState<boolean>(false);
+
   const [districts, setDistricts] = useState<AdsDistrict[]>([]);
   const dispatch = useAppDispatch();
   const {
@@ -26,13 +29,13 @@ const AdTypes = () => {
     formState: { errors },
   } = useForm({ defaultValues: { name: '' } });
 
-  const deleteDistrict = async (district: AdsDistrict) => {
+  const deleteSpaceFormat = async (district: AdsDistrict) => {
     try {
       const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.name} không?`;
       const { isConfirmed } = await AlertService.showMessage(AlertType.Question, msg);
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
-        await DistrictsService.remove(district._id);
+        await SpaceFormatService.remove(district._id);
         setDistricts(districts.filter((item) => item._id !== district._id));
       }
     } catch (error) {
@@ -76,7 +79,7 @@ const AdTypes = () => {
                 size='large'
                 icon={<DeleteOutlined />}
                 shape='circle'
-                onClick={() => deleteDistrict(district)}></Button>
+                onClick={() => deleteSpaceFormat(district)}></Button>
             </Tooltip>
           </Space>
         ),
@@ -87,7 +90,7 @@ const AdTypes = () => {
   const createDistrict = async (formValue: { name: string }): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      const newDistrict = await DistrictsService.create(formValue);
+      const newDistrict = await SpaceFormatService.create(formValue);
       clearFormAndCloseModal();
       setDistricts([newDistrict, ...districts]);
     } catch (error) {
@@ -97,17 +100,53 @@ const AdTypes = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const openNewDistrictModal = useCallback(() => {
-    setIsOpen(true);
+  //set open modal
+  const openNewSpaceTypeModal = useCallback(() => {
+    setSpaceTypeOpen(true);
+    setSpaceFormatOpen(false);
+    setReportFormatOpen(false);
+    setSurfaceTypeOpen(false);
+
   }, []);
 
+  
+  const openNewSpaceFormatModal = useCallback(() => {
+    setSpaceTypeOpen(false);
+    setSpaceFormatOpen(true);
+    setReportFormatOpen(false);
+    setSurfaceTypeOpen(false);
+
+  }, []);
+
+  const openNewReportFormatModal = useCallback(() => {
+    setSpaceTypeOpen(false);
+    setSpaceFormatOpen(false);
+    setReportFormatOpen(true);
+    setSurfaceTypeOpen(false);
+
+  }, []);
+
+  const openNewSurfaceTypeModal = useCallback(() => {
+    setSpaceTypeOpen(false);
+    setSpaceFormatOpen(false);
+    setReportFormatOpen(false);
+    setSurfaceTypeOpen(true);
+
+  }, []);
+
+
+  // clear modal
   const clearFormAndCloseModal = useCallback(() => {
     reset({ name: '' });
-    setIsOpen(false);
+    setSpaceTypeOpen(false);
+    setSpaceFormatOpen(false);
+    setReportFormatOpen(false);
+    setSurfaceTypeOpen(false);
+
   }, []);
 
   useEffect(() => {
-    const getDistricts = async () => {
+    const getSpaceType = async () => {
       try {
         dispatch(sharedActions.showLoading());
         const districts = await SpaceTypeService.getAll();
@@ -119,21 +158,48 @@ const AdTypes = () => {
         dispatch(sharedActions.hideLoading());
       }
     };
+    const getSpaceFormat = async () => {
+      try {
+        dispatch(sharedActions.showLoading());
+        const districts = await SpaceFormatService.getAll();
+        setDistricts(districts);
+      } catch (error) {
+        const msg = error?.response?.data?.message || error.message;
+        AlertService.showMessage(AlertType.Error, msg);
+      } finally {
+        dispatch(sharedActions.hideLoading());
+      }
+    };
+    getSpaceFormat();
+    getSpaceType();
 
-    getDistricts();
   }, []);
 
   return (
     <>
-      <Button size='large' icon={<PlusOutlined />} className='mb-3' onClick={openNewDistrictModal}>
-        Thêm quận
+      <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSpaceTypeModal}>
+        Thêm SpaceType
       </Button>
+      <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSpaceFormatModal}>
+        Thêm SpaceFormat
+      </Button>
+
+      <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewReportFormatModal}>
+        Thêm Report Format
+      </Button>
+
+      <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSurfaceTypeModal}>
+        Thêm Surface Type
+      </Button>
+
       <hr />
       <AdsDynamicTable dataSrc={districts} cols={tableColumns} />
+
+
       <AdsFormModal
         width='50vw'
-        isOpen={isOpen}
-        title='Thêm Quận'
+        isOpen={isSpaceTypeOpen}
+        title='SurfaceType'
         cancelBtnText='Đóng'
         confirmBtnText='Thêm'
         onCancel={clearFormAndCloseModal}
@@ -143,16 +209,75 @@ const AdTypes = () => {
             control={control}
             error={errors.name}
             name='name'
-            label='Tên quận'
-            placeholder='Nhập tên quận'
+            label='Tên loại'
+            placeholder='Nhập tên loại biển quảng cáo'
             rules={{ required: 'Không được để trống' }}
           />
-          <div className='w-full h-[500px]'>
-            <AdsMap />
-          </div>
-          <AdsMap />
         </Form>
       </AdsFormModal>
+
+      <AdsFormModal
+        width='50vw'
+        isOpen={isSpaceFormatOpen}
+        title='SpaceFormat'
+        cancelBtnText='Đóng'
+        confirmBtnText='Thêm'
+        onCancel={clearFormAndCloseModal}
+        onSubmit={handleSubmit(createDistrict)}>
+        <Form layout='vertical'>
+          <AdsInput
+            control={control}
+            error={errors.name}
+            name='name'
+            label='Tên loại'
+            placeholder='Nhập tên loại biển quảng cáo'
+            rules={{ required: 'Không được để trống' }}
+          />
+        </Form>
+      </AdsFormModal>
+
+
+      <AdsFormModal
+        width='50vw'
+        isOpen={isReportFormatOpen}
+        title='ReportFormat'
+        cancelBtnText='Đóng'
+        confirmBtnText='Thêm'
+        onCancel={clearFormAndCloseModal}
+        onSubmit={handleSubmit(createDistrict)}>
+        <Form layout='vertical'>
+          <AdsInput
+            control={control}
+            error={errors.name}
+            name='name'
+            label='Tên loại'
+            placeholder='Nhập tên loại biển quảng cáo'
+            rules={{ required: 'Không được để trống' }}
+          />
+        </Form>
+      </AdsFormModal>
+
+
+      <AdsFormModal
+        width='50vw'
+        isOpen={isSurfaceTypeOpen}
+        title='SurfaceType'
+        cancelBtnText='Đóng'
+        confirmBtnText='Thêm'
+        onCancel={clearFormAndCloseModal}
+        onSubmit={handleSubmit(createDistrict)}>
+        <Form layout='vertical'>
+          <AdsInput
+            control={control}
+            error={errors.name}
+            name='name'
+            label='Tên loại'
+            placeholder='Nhập tên loại biển quảng cáo'
+            rules={{ required: 'Không được để trống' }}
+          />
+        </Form>
+      </AdsFormModal>
+      
     </>
   );
 };
