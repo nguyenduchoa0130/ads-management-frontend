@@ -13,7 +13,9 @@ const sharedSlice = createSlice({
   name: 'shared',
   initialState,
   reducers: {
-    setCurrentUser: (state, payload) => {},
+    setCurrentUser: (state, { payload }) => {
+      state.currentUser = payload;
+    },
     showLoading: (state) => {
       state.isLoading = true;
     },

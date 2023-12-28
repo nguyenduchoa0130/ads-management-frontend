@@ -135,8 +135,8 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole }) => {
               collapsible
               collapsed={isCollapsed}
               className={`bg-transparent h-full !w-fit ${!isCollapsed ? '!max-w-fit' : null}`}>
-              <div className='py-4 h-full bg-white border-r'>
-                <div className='flex items-center justify-center pb-3 border-b'>
+              <div className='py-4 h-full bg-white' style={{ borderRight: '1px solid #ddd' }}>
+                <div className='flex items-center justify-center pb-3'>
                   <Tooltip title='Menu' placement='right' arrow={true}>
                     <Button
                       size='large'
@@ -147,7 +147,7 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole }) => {
                     </Button>
                   </Tooltip>
                 </div>
-                <Menu mode='inline' className='p-2'>
+                <Menu mode='inline' className='p-2' style={{ borderInlineEnd: 'none' }}>
                   {menuItems.map((item, idx) => (
                     <Menu.Item
                       key={`menu-item-${idx}`}

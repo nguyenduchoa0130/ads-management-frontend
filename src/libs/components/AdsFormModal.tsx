@@ -10,6 +10,7 @@ interface AdsFormModalProps {
   confirmBtnText?: string;
   onSubmit?: () => any;
   onCancel?: () => any;
+  hasCustomFooter?: boolean;
 }
 
 const AdsFormModal: FC<AdsFormModalProps> = ({
@@ -19,6 +20,7 @@ const AdsFormModal: FC<AdsFormModalProps> = ({
   children,
   cancelBtnText,
   confirmBtnText,
+  hasCustomFooter,
   onCancel,
   onSubmit,
 }) => {
@@ -33,15 +35,19 @@ const AdsFormModal: FC<AdsFormModalProps> = ({
         width={width || 520}>
         <hr />
         <div className='p-1'>{children}</div>
-        <hr />
-        <div className='flex items-center justify-between mt-2'>
-          <Button danger htmlType='button' onClick={onCancel} size='large'>
-            {cancelBtnText || 'Cancel'}
-          </Button>
-          <Button size='large' htmlType='submit' onClick={onSubmit}>
-            {confirmBtnText || 'Ok'}
-          </Button>
-        </div>
+        {!hasCustomFooter && (
+          <>
+            <hr />
+            <div className='flex items-center justify-between mt-3'>
+              <Button danger htmlType='button' onClick={onCancel} size='large'>
+                {cancelBtnText || 'Đóng'}
+              </Button>
+              <Button type='primary' size='large' htmlType='submit' onClick={onSubmit}>
+                {confirmBtnText || 'Ok'}
+              </Button>
+            </div>
+          </>
+        )}
       </Modal>
     </>
   );
