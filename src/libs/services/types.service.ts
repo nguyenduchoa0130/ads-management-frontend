@@ -11,7 +11,10 @@ const SpaceTypeService = {
     const { data } = await axiosClient.post('api/space-type', payload);
     return data.responseData;
   },
-
+  update: async (payload: { name: string , _id: string}): Promise<AdsType> => {
+    const { data } = await axiosClient.patch(`api/space-type/${payload._id}`, payload);
+    return data.responseData;
+  },
   remove: async (districtId: string): Promise<void> => {
     await axiosClient.delete(`api/space-type/${districtId}`);
   },
@@ -25,9 +28,12 @@ const SurfaceTypeService = {
 
   create: async (payload: { name: string }): Promise<AdsType> => {
     const { data } = await axiosClient.post('api/surface-type', payload);
-    return data.responseData;
+    return data;
   },
-
+  update: async (payload: { name: string , _id: string}): Promise<AdsType> => {
+    const { data } = await axiosClient.patch(`api/surface-type/${payload._id}`, payload);
+    return data;
+  },
   remove: async (districtId: string): Promise<void> => {
     await axiosClient.delete(`api/surface-type/${districtId}`);
   },
@@ -43,7 +49,10 @@ const ReportFormatService = {
     const { data } = await axiosClient.post('api/report-format', payload);
     return data.responseData;
   },
-
+  update: async (payload: { name: string , _id: string}): Promise<AdsType> => {
+    const { data } = await axiosClient.patch(`api/report-format/${payload._id}`, payload);
+    return data.responseData;
+  },
   remove: async (districtId: string): Promise<void> => {
     await axiosClient.delete(`api/report-format/${districtId}`);
   },
@@ -59,7 +68,10 @@ const SpaceFormatService = {
     const { data } = await axiosClient.post('api/space-format', payload);
     return data.responseData;
   },
-
+  update: async (payload: { name: string , _id: string}): Promise<AdsType> => {
+    const { data } = await axiosClient.patch(`api/space-format/${payload._id}`, payload);
+    return data.responseData;
+  },
   remove: async (districtId: string): Promise<void> => {
     await axiosClient.delete(`api/space-format/${districtId}`);
   },

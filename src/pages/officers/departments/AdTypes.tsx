@@ -29,13 +29,71 @@ const AdTypes = () => {
 
   const dispatch = useAppDispatch();
   const {
+    setValue,
     reset,
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: { name: '' } });
+  } = useForm({ defaultValues: { name: '', _id: '' } });
 
+  //set event edit 
 
+  const editSpaceType = async (district: AdsType) => {
+    try {
+ 
+      setValue('_id', district._id);
+      setValue('name', district.name);
+      openNewSpaceTypeModal();
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  const editSpaceFormat = async (district: AdsType) => {
+    try {
+ 
+      setValue('_id', district._id);
+      setValue('name', district.name);
+      openNewSpaceFormatModal();
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  const editSurfaceType = async (district: AdsType) => {
+    try {
+ 
+      setValue('_id', district._id);
+      setValue('name', district.name);
+      openNewSurfaceTypeModal();
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  const editReportFormat = async (district: AdsType) => {
+    try {
+ 
+      setValue('_id', district._id);
+      setValue('name', district.name);
+      openNewReportFormatModal();
+
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
   //set event delete
   const deleteSpaceFormat = async (district: AdsType) => {
     try {
@@ -125,7 +183,7 @@ const AdTypes = () => {
         render: (_, district: AdsDistrict) => (
           <Space>
             <Tooltip title='Cập nhật'>
-              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+              <Button size='large' icon={<EditOutlined />}  shape='circle' onClick={() => editSpaceType(district)}></Button>
             </Tooltip>
             <Tooltip title='Xoá'>
               <Button
@@ -162,7 +220,7 @@ const AdTypes = () => {
         render: (_, district: AdsDistrict) => (
           <Space>
             <Tooltip title='Cập nhật'>
-              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+              <Button size='large' icon={<EditOutlined />} shape='circle' onClick={() => editSpaceFormat(district)}></Button>
             </Tooltip>
             <Tooltip title='Xoá'>
               <Button
@@ -199,7 +257,7 @@ const AdTypes = () => {
         render: (_, district: AdsDistrict) => (
           <Space>
             <Tooltip title='Cập nhật'>
-              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+              <Button size='large' icon={<EditOutlined />} onClick={() => editReportFormat(district)} shape='circle'></Button>
             </Tooltip>
             <Tooltip title='Xoá'>
               <Button
@@ -208,7 +266,7 @@ const AdTypes = () => {
                 size='large'
                 icon={<DeleteOutlined />}
                 shape='circle'
-                onClick={() => deleteReportFormat(district)}></Button>
+                onClick={() => deleteReportFormat(district)} ></Button>
             </Tooltip>
           </Space>
         ),
@@ -236,7 +294,7 @@ const AdTypes = () => {
         render: (_, district: AdsDistrict) => (
           <Space>
             <Tooltip title='Cập nhật'>
-              <Button size='large' icon={<EditOutlined />} shape='circle'></Button>
+              <Button size='large' icon={<EditOutlined />} onClick={() => editSurfaceType(district)} shape='circle'></Button>
             </Tooltip>
             <Tooltip title='Xoá'>
               <Button
@@ -256,11 +314,18 @@ const AdTypes = () => {
 
 
   // set button create
-  const createSpaceType = async (formValue: { name: string }): Promise<void> => {
+  const createSpaceType = async (formValue: { name: string, _id: string }): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      const newDistrict = await SpaceTypeService.create(formValue);
-      console.log(newDistrict);
+
+      if(formValue._id) {
+        const newDistrict = await SpaceTypeService.update(formValue);
+
+      }else {
+        const newDistrict = await SpaceTypeService.create(formValue);
+
+      }
+     
       clearFormAndCloseModal();
       setReloadTrigger((prev) => !prev);
 
@@ -273,10 +338,17 @@ const AdTypes = () => {
     }
   };
 
-  const createSpaceFormat = async (formValue: { name: string }): Promise<void> => {
+  const createSpaceFormat = async (formValue: { name: string, _id: string }): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      const newDistrict = await SpaceFormatService.create(formValue);
+      if(formValue._id) {
+        const newDistrict = await SpaceFormatService.update(formValue);
+
+      }else {
+        const newDistrict = await SpaceFormatService.create(formValue);
+
+      }
+     
       clearFormAndCloseModal();
       setReloadTrigger((prev) => !prev);
 
@@ -287,11 +359,17 @@ const AdTypes = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const createReportFormat = async (formValue: { name: string }): Promise<void> => {
+  const createReportFormat = async (formValue: { name: string , _id: string}): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      const newDistrict = await ReportFormatService.create(formValue);
-      console.log(newDistrict);
+      if(formValue._id) {
+        const newDistrict = await ReportFormatService.update(formValue);
+
+      }else {
+        const newDistrict = await ReportFormatService.create(formValue);
+
+      }
+     
       clearFormAndCloseModal();
       setReloadTrigger((prev) => !prev);
 
@@ -305,10 +383,20 @@ const AdTypes = () => {
     }
   };
 
-  const createSurfaceType = async (formValue: { name: string }): Promise<void> => {
+  const createSurfaceType = async (formValue: { name: string, _id: string }): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      const newDistrict = await SurfaceTypeService.create(formValue);
+      let res;
+      if(formValue._id) {
+        res = await SurfaceTypeService.update(formValue);
+
+      }else {
+        res = await SurfaceTypeService.create({name: formValue.name});
+        
+      }
+      const msg =  res?.message;
+      console.log(res);
+      AlertService.showMessage(AlertType.Success, msg);
       clearFormAndCloseModal();
       setReloadTrigger(true);
 
@@ -358,7 +446,7 @@ const AdTypes = () => {
 
   // clear modal
   const clearFormAndCloseModal = useCallback(() => {
-    reset({ name: '' });
+    reset({ name: '', _id: '' });
     setSpaceTypeOpen(false);
     setSpaceFormatOpen(false);
     setReportFormatOpen(false);
@@ -482,7 +570,7 @@ const AdTypes = () => {
         isOpen={isSpaceTypeOpen}
         title='SurfaceType'
         cancelBtnText='Đóng'
-        confirmBtnText='Thêm'
+        confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
         onSubmit={handleSubmit(createSpaceType)}>
         <Form layout='vertical'>
@@ -493,6 +581,16 @@ const AdTypes = () => {
             label='Tên loại'
             placeholder='Nhập tên loại biển quảng cáo'
             rules={{ required: 'Không được để trống' }}
+
+          />
+          <AdsInput
+            control={control}
+            error={errors._id}
+            name='_id'
+            label='Id'
+            placeholder=''
+            isDisabled
+            
           />
         </Form>
       </AdsFormModal>
@@ -502,7 +600,7 @@ const AdTypes = () => {
         isOpen={isSpaceFormatOpen}
         title='SpaceFormat'
         cancelBtnText='Đóng'
-        confirmBtnText='Thêm'
+        confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
         onSubmit={handleSubmit(createSpaceFormat)}>
         <Form layout='vertical'>
@@ -514,6 +612,15 @@ const AdTypes = () => {
             placeholder='Nhập tên loại biển quảng cáo'
             rules={{ required: 'Không được để trống' }}
           />
+                    <AdsInput
+            control={control}
+            error={errors._id}
+            name='_id'
+            label='Id'
+            placeholder=''
+            isDisabled
+            
+          />
         </Form>
       </AdsFormModal>
 
@@ -523,7 +630,7 @@ const AdTypes = () => {
         isOpen={isReportFormatOpen}
         title='ReportFormat'
         cancelBtnText='Đóng'
-        confirmBtnText='Thêm'
+        confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
         onSubmit={handleSubmit(createReportFormat)}>
         <Form layout='vertical'>
@@ -535,6 +642,15 @@ const AdTypes = () => {
             placeholder='Nhập tên loại biển quảng cáo'
             rules={{ required: 'Không được để trống' }}
           />
+                    <AdsInput
+            control={control}
+            error={errors._id}
+            name='_id'
+            label='Id'
+            placeholder=''
+            isDisabled
+            
+          />
         </Form>
       </AdsFormModal>
 
@@ -544,7 +660,7 @@ const AdTypes = () => {
         isOpen={isSurfaceTypeOpen}
         title='SurfaceType'
         cancelBtnText='Đóng'
-        confirmBtnText='Thêm'
+        confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
         onSubmit={handleSubmit(createSurfaceType)}>
         <Form layout='vertical'>
@@ -555,6 +671,15 @@ const AdTypes = () => {
             label='Tên loại'
             placeholder='Nhập tên loại biển quảng cáo'
             rules={{ required: 'Không được để trống' }}
+          />
+                    <AdsInput
+            control={control}
+            error={errors._id}
+            name='_id'
+            label='Id'
+            placeholder=''
+            isDisabled
+            
           />
         </Form>
       </AdsFormModal>
