@@ -100,7 +100,7 @@ const Home = () => {
               onClick={openMenu}></Button>
           </Tooltip>
         </div>
-        <AdsMap isHomePage />
+        <AdsMap isHomePage={true} />
         <Drawer key='left' open={isOpen} placement='left' closable={false} onClose={closeMenu}>
           <div className='flex items-center justify-between'>
             <Typography.Text className='text-xl font-semibold'>MENU</Typography.Text>

@@ -11,6 +11,9 @@ const Home = lazy(() => import('./pages/Home'));
 const MyProfile = lazy(() => import('./pages/MyProfile'));
 const PageNotFound = lazy(() => import('./pages/PageNotFound'));
 
+// Admin
+const Dashboard = lazy(() => import('./pages/officers/Dashboard'));
+
 // Admin/Department
 const Areas = lazy(() => import('./pages/officers/departments/Areas'));
 const AdTypes = lazy(() => import('./pages/officers/departments/AdTypes'));
@@ -40,6 +43,10 @@ const App = () => {
       path: '/can-bo-so-vh-tt',
       element: <AdminLayout adminRole={AdminRole.DepartmentOfficer} />,
       children: [
+        {
+          index: true,
+          element: <LazyLoadComponent component={<Dashboard />} />,
+        },
         {
           path: 'thong-ke',
           element: <LazyLoadComponent component={<Statistics />} />,

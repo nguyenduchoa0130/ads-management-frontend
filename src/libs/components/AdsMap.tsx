@@ -83,7 +83,7 @@ const AdsMap: FC<AdsMapProps> = ({
         {isLoaded ? (
           <>
             {isEnableSearch && (
-              <div className={`absolute top-2 z-10 left-${isHomePage ? '16' : '2'}`}>
+              <div className={`absolute top-2 z-10 left-${isHomePage ? '16' : '4'}`}>
                 <Autocomplete
                   onLoad={(autocomplete) => {
                     autocompleteRef.current = autocomplete;
