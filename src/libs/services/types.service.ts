@@ -8,12 +8,13 @@ const SpaceTypeService = {
   },
 
   create: async (payload: { name: string }): Promise<AdsType> => {
+    delete payload['_id'];
     const { data } = await axiosClient.post('api/space-type', payload);
-    return data.responseData;
+    return data;
   },
   update: async (payload: { name: string , _id: string}): Promise<AdsType> => {
     const { data } = await axiosClient.patch(`api/space-type/${payload._id}`, payload);
-    return data.responseData;
+    return data;
   },
   remove: async (districtId: string): Promise<void> => {
     await axiosClient.delete(`api/space-type/${districtId}`);
@@ -27,6 +28,7 @@ const SurfaceTypeService = {
   },
 
   create: async (payload: { name: string }): Promise<AdsType> => {
+    delete payload['_id'];
     const { data } = await axiosClient.post('api/surface-type', payload);
     return data;
   },
@@ -46,6 +48,7 @@ const ReportFormatService = {
   },
 
   create: async (payload: { name: string }): Promise<AdsType> => {
+    delete payload['_id'];
     const { data } = await axiosClient.post('api/report-format', payload);
     return data.responseData;
   },
@@ -65,6 +68,7 @@ const SpaceFormatService = {
   },
 
   create: async (payload: { name: string }): Promise<AdsType> => {
+    delete payload['_id'];
     const { data } = await axiosClient.post('api/space-format', payload);
     return data.responseData;
   },

@@ -398,7 +398,7 @@ const AdTypes = () => {
       console.log(res);
       AlertService.showMessage(AlertType.Success, msg);
       clearFormAndCloseModal();
-      setReloadTrigger(true);
+      setReloadTrigger((prev) => !prev);
 
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
