@@ -1,26 +1,38 @@
 import { AimOutlined, SearchOutlined } from '@ant-design/icons';
 import AlertType from '@enums/alert-type';
 import { AdsLocation } from '@interfaces/ads-location';
-import { Autocomplete, GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { Autocomplete, GoogleMap, Marker, Polygon, useJsApiLoader } from '@react-google-maps/api';
 import AlertService from '@services/alert.service';
+import extractBoundariesUtil from '@utils/extract-boundaries.util';
 import { Button, Input, Tooltip } from 'antd';
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useRef, useState } from 'react';
+import { OutputFormat, fromLatLng, setDefaults } from 'react-geocode';
 
+setDefaults({
+  key: process.env.REACT_APP_GOOGLE_MAP_ACCESS_KEY,
+  language: 'vi',
+  outputFormat: OutputFormat.JSON,
+});
 interface AdsMapProps {
+  zoom?: number;
   isEnableSearch?: boolean;
   isHomePage?: boolean;
-  onLocationChange?: (location: AdsLocation) => any;
+  onSearchAddress?: () => any;
+  onClickOnMap?: () => any;
 }
 
 const AdsMap: FC<AdsMapProps> = ({
+  zoom = 13,
   isHomePage = false,
   isEnableSearch = true,
-  onLocationChange = (_) => {},
+  onClickOnMap = () => {},
+  onSearchAddress = () => {},
 }) => {
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState<AdsLocation>(null);
   const [defaultCenter, setDefaultCenter] = useState<AdsLocation>(null);
   const [address, setAddress] = useState<string>('');
+  const [bounds, setBounds] = useState<AdsLocation[]>([]);
   const autocompleteRef = useRef(null);
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -58,7 +70,6 @@ const AdsMap: FC<AdsMapProps> = ({
 
   const handlePlaceSelect = (place) => {
     setAddress(place.formatted_address);
-
     const service = new window.google.maps.places.PlacesService(map);
     service.getDetails(
       {
@@ -68,14 +79,26 @@ const AdsMap: FC<AdsMapProps> = ({
         if (status === window.google.maps.places.PlacesServiceStatus.OK) {
           const location = placeDetails.geometry.location;
           setCenter({ lat: location.lat(), lng: location.lng() });
+          setBounds(extractBoundariesUtil(placeDetails.geometry.viewport));
         }
       },
     );
   };
 
-  useEffect(() => {
-    onLocationChange(center);
-  }, [center]);
+  const handleClickOnMap = async (locationInfo) => {
+    const lat = locationInfo.latLng.lat();
+    const lng = locationInfo.latLng.lng();
+    const { results, status } = await fromLatLng(lat, lng);
+    if (status === 'OK') {
+      const [placeDetails] = results;
+      const location = placeDetails.geometry.location;
+      console.log(location);
+      // setCenter({ lat: location.lat(), lng: location.lng() });
+      // setBounds(extractBoundariesUtil(placeDetails.geometry.viewport));
+    } else {
+      AlertService.showMessage(AlertType.Error, 'Có lỗi trong quá trình tìm kiếm địa chỉ');
+    }
+  };
 
   return (
     <>
@@ -83,7 +106,7 @@ const AdsMap: FC<AdsMapProps> = ({
         {isLoaded ? (
           <>
             {isEnableSearch && (
-              <div className={`absolute top-2 z-10 left-${isHomePage ? '16' : '4'}`}>
+              <div className={`absolute top-2 z-10 ${isHomePage ? 'left-16' : 'left-4'}`}>
                 <Autocomplete
                   onLoad={(autocomplete) => {
                     autocompleteRef.current = autocomplete;
@@ -117,13 +140,52 @@ const AdsMap: FC<AdsMapProps> = ({
               </div>
             )}
             <GoogleMap
-              mapContainerStyle={{ width: '100%', height: '100%' }}
+              zoom={zoom}
               center={center}
-              zoom={20}
+              mapContainerClassName='google-map'
+              mapContainerStyle={{ width: '100%', height: '100%' }}
               onLoad={handleOnLoadMap}
+              onClick={handleClickOnMap}
               onUnmount={handleOnDestroyMap}
-              mapContainerClassName='google-map'>
-              <>{center && <Marker position={center} />}</>
+              options={{
+                styles: [
+                  {
+                    featureType: 'all',
+                    elementType: 'labels.text',
+                    stylers: [
+                      {
+                        visibility: 'off',
+                      },
+                    ],
+                  },
+                  {
+                    featureType: 'poi',
+                    elementType: 'labels.icon',
+                    stylers: [
+                      {
+                        visibility: 'off',
+                      },
+                    ],
+                  },
+                ],
+              }}>
+              <>
+                {center && <Marker draggable position={center} onDragEnd={console.log}></Marker>}
+                {bounds.length && (
+                  <>
+                    <Polygon
+                      path={bounds}
+                      options={{
+                        fillColor: '#87CEFA',
+                        fillOpacity: 0,
+                        strokeColor: '#FFA07A',
+                        strokeOpacity: 1,
+                        strokeWeight: 2,
+                      }}
+                    />
+                  </>
+                )}
+              </>
             </GoogleMap>
           </>
         ) : (
