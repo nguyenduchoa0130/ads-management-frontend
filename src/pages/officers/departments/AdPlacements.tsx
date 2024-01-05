@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, FundViewOutlined, PlusOutlined } from "@ant-design/icons";
 import { useAppDispatch } from "@appHook/hooks";
 import FormControlDropdown from "@components/AdsDropdown";
 import AdsDynamicTable from "@components/AdsDynamicTable";
@@ -15,6 +15,7 @@ import DropDownOption from "@interfaces/dropdown-option";
 import TableColumn from "@interfaces/table-column";
 import { getType } from "@reduxjs/toolkit";
 import AlertService from "@services/alert.service";
+import DistrictsService from "@services/districts.service";
 import { SpaceService } from "@services/spaces.service";
 import { SpaceFormatService, SpaceTypeService } from "@services/types.service";
 import { WardService } from "@services/wards.service";
@@ -58,7 +59,7 @@ const AdPlacements = () => {
 
   const deleteSpace = async (district: AdsSpace) => {
     try {
-      const msg = `Bạn có chắc chắn là muốn xoá muốn xoá ${district.address} không?`;
+      const msg = `Bạn có chắc chắn là muốn xoá vị trí ${district.long}, ${district.lat} không?`;
       const { isConfirmed } = await AlertService.showMessage(
         AlertType.Question,
         msg
@@ -130,7 +131,14 @@ const AdPlacements = () => {
     setValue("long", lngLat.lng);
     setValue("lat", lngLat.lat);
     setValue("address", lngLat.addressDetail[0]["formatted_address"]);
+
+    // console.log(lngLat.addressDetail[0]['address_components']);
+
+    // DistrictsService.create({name: lngLat.addressDetail[0]['address_components'][2]["long_name"]})
   };
+   const viewSurface = function(data) {
+    
+   }
 
   const tableColumns = useMemo(
     (): TableColumn[] => [
@@ -192,6 +200,16 @@ const AdPlacements = () => {
                 icon={<DeleteOutlined />}
                 shape="circle"
                 onClick={() => deleteSpace(space)}
+              ></Button>
+            </Tooltip>
+            <Tooltip title="Xem chi tiết">
+              <Button
+                type="primary"
+                
+                size="large"
+                icon={<FundViewOutlined />}
+                shape="circle"
+                onClick={() => viewSurface(space)}
               ></Button>
             </Tooltip>
           </Space>

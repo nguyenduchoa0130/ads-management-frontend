@@ -1,20 +1,22 @@
-import { Surface } from '@interfaces/ads-surface';
+import { AdsSurface } from '@interfaces/ads-surface';
 import axiosClient from '@interceptors/index';
 
 
 export const SurfaceService = {
-  getAll: async (): Promise<Surface[]> => {
+  getAll: async (): Promise<AdsSurface[]> => {
     const { data } = await axiosClient.get('api/surfaces');
     return data.responseData;
   },
 
-  create: async (payload: { name: string }): Promise<Surface> => {
+  create: async (payload: AdsSurface): Promise<AdsSurface> => {
     delete payload['_id'];
-    const { data } = await axiosClient.post('api/surfaces', payload);
+    const { data } = await axiosClient.postForm('api/surfaces', payload, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return data;
   },
-  update: async (payload: { name: string , _id: string}): Promise<Surface> => {
-    const { data } = await axiosClient.put(`api/surfaces/${payload._id}`, payload);
+  update: async (payload:AdsSurface): Promise<AdsSurface> => {
+    const { data } = await axiosClient.patchForm(`api/surfaces/${payload._id}`, payload);
     return data;
   },
   remove: async (districtId: string): Promise<void> => {
