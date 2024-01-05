@@ -34,6 +34,7 @@ const App = () => {
       element: <AdminLayout adminRole={AdminRole.WardOfficer} />,
       children: [],
     },
+    
     {
       path: '/can-bo-quan',
       element: <AdminLayout adminRole={AdminRole.DistrictOfficer} />,

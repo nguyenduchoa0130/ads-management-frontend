@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;800&display=swap');
+
 * {
   padding: 0;
   margin: 0;
@@ -14,7 +16,7 @@ html {
 
 body,
 body * {
-  font-family: 'Poppins', sans-serif !important;
+  font-family: 'Barlow', sans-serif !important;
 }
 
 .swal2-container {

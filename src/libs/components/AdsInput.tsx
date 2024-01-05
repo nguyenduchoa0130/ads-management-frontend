@@ -11,6 +11,7 @@ interface AdsInputProps {
   isPassword?: boolean;
   placeholder?: string;
   isDisabled?: boolean;
+  isHidden?: boolean;
 }
 
 const AdsInput: FC<AdsInputProps> = ({
@@ -21,11 +22,12 @@ const AdsInput: FC<AdsInputProps> = ({
   placeholder = '',
   isDisabled = false,
   isPassword = false,
+  isHidden = false,
   label = 'Form Control Label',
 }) => {
   return (
     <>
-      <Form.Item label={label} validateStatus={error ? 'error' : ''} help={error && error.message}>
+      <Form.Item label={label} validateStatus={error ? 'error' : ''} help={error && error.message} hidden={isHidden}>
         <Controller
           name={name}
           rules={rules}

@@ -17,6 +17,9 @@ import { useForm } from 'react-hook-form';
 const Areas = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [districts, setDistricts] = useState<AdsDistrict[]>([]);
+
+ 
+
   const dispatch = useAppDispatch();
   const {
     reset,

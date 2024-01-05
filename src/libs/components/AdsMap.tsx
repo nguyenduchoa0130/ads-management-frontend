@@ -18,15 +18,19 @@ interface AdsMapProps {
   isEnableSearch?: boolean;
   isHomePage?: boolean;
   onSearchAddress?: () => any;
-  onClickOnMap?: () => any;
+  onClickOnMap?: (data: AdsLocation) => any;
+ 
+
 }
 
 const AdsMap: FC<AdsMapProps> = ({
   zoom = 13,
   isHomePage = false,
   isEnableSearch = true,
-  onClickOnMap = () => {},
-  onSearchAddress = () => {},
+  onClickOnMap = (data: AdsLocation) => {},
+  onSearchAddress = (data: AdsLocation) => {},
+  
+
 }) => {
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState<AdsLocation>(null);
@@ -80,21 +84,23 @@ const AdsMap: FC<AdsMapProps> = ({
           const location = placeDetails.geometry.location;
           setCenter({ lat: location.lat(), lng: location.lng() });
           setBounds(extractBoundariesUtil(placeDetails.geometry.viewport));
+
+          console.log(extractBoundariesUtil(placeDetails.geometry.viewport));
+          onSearchAddress({ lat: location.lat(), lng: location.lng() });
         }
       },
     );
   };
 
-  const handleClickOnMap = async (locationInfo) => {
+  const handleClickOnMap = async (locationInfo ) => {
     const lat = locationInfo.latLng.lat();
     const lng = locationInfo.latLng.lng();
     const { results, status } = await fromLatLng(lat, lng);
     if (status === 'OK') {
       const [placeDetails] = results;
       const location = placeDetails.geometry.location;
-      console.log(location);
-      // setCenter({ lat: location.lat(), lng: location.lng() });
-      // setBounds(extractBoundariesUtil(placeDetails.geometry.viewport));
+     
+      onClickOnMap({lat: location.lat, lng: location.lng, addressDetail: results});
     } else {
       AlertService.showMessage(AlertType.Error, 'Có lỗi trong quá trình tìm kiếm địa chỉ');
     }
