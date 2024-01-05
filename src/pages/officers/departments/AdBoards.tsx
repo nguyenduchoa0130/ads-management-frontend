@@ -111,7 +111,7 @@ const AdBoards = () => {
         title: "Loại",
         dataIndex: "type",
         key: "type",
-        render: (_, district: AdsSurface) => district.type.name,
+        render: (_, district: AdsSurface) => district?.type?.name,
       },
       {
         title: "Kích thước",

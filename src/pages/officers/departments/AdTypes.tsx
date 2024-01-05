@@ -518,22 +518,22 @@ const AdTypes = () => {
   const items: TabsProps['items'] = [
     {
       key: '1',
-      label: 'Space Types',
+      label: 'Loại vị trí',
       children: <AdsDynamicTable dataSrc={spaceTypes} cols={tableColumnsSpaceType} />,
     },
     {
       key: '2',
-      label: 'Space Formats',
+      label: 'Hình thức quảng cáo',
       children: <AdsDynamicTable dataSrc={spaceFormats} cols={tableColumnsSpaceFormat} />,
     },
     {
       key: '3',
-      label: 'Surface Types',
+      label: 'Loại biển quảng cáo',
       children: <AdsDynamicTable dataSrc={surfaceTypes} cols={tableColumnsSurfaceType} />,
     },
     {
       key: '4',
-      label: 'Report Formats',
+      label: 'Hình thức báo cáo',
       children: <AdsDynamicTable dataSrc={reportFormats} cols={tableColumnsReportFormat} />,
     },
   ];
@@ -541,19 +541,19 @@ const AdTypes = () => {
     <>
 
       <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSpaceTypeModal}>
-        Thêm SpaceType
+        Thêm Loại vị trí
       </Button>
       <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSpaceFormatModal}>
-        Thêm SpaceFormat
+        Thêm Hình thức quảng cáo
       </Button>
-
-      <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewReportFormatModal}>
-        Thêm Report Format
-      </Button>
-
       <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewSurfaceTypeModal}>
-        Thêm Surface Type
+        Thêm Loại biển quảng cáo
       </Button>
+      <Button size='large' icon={<PlusOutlined />} className='mb-3 mr-1' onClick={openNewReportFormatModal}>
+        Thêm Hình thức báo cáo
+      </Button>
+
+     
 
       <hr />
 
@@ -568,7 +568,7 @@ const AdTypes = () => {
       <AdsFormModal
         width='50vw'
         isOpen={isSpaceTypeOpen}
-        title='SurfaceType'
+        title='Loại vị trí'
         cancelBtnText='Đóng'
         confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
@@ -598,7 +598,7 @@ const AdTypes = () => {
       <AdsFormModal
         width='50vw'
         isOpen={isSpaceFormatOpen}
-        title='SpaceFormat'
+        title='Hình thức quảng cáo'
         cancelBtnText='Đóng'
         confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
@@ -628,7 +628,7 @@ const AdTypes = () => {
       <AdsFormModal
         width='50vw'
         isOpen={isReportFormatOpen}
-        title='ReportFormat'
+        title='Hình thức báo cáo'
         cancelBtnText='Đóng'
         confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}
@@ -658,7 +658,7 @@ const AdTypes = () => {
       <AdsFormModal
         width='50vw'
         isOpen={isSurfaceTypeOpen}
-        title='SurfaceType'
+        title='Loại biển quảng cáo'
         cancelBtnText='Đóng'
         confirmBtnText='Lưu'
         onCancel={clearFormAndCloseModal}

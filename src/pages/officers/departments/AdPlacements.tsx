@@ -1,4 +1,9 @@
-import { DeleteOutlined, EditOutlined, FundViewOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  FundViewOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { useAppDispatch } from "@appHook/hooks";
 import FormControlDropdown from "@components/AdsDropdown";
 import AdsDynamicTable from "@components/AdsDynamicTable";
@@ -82,10 +87,10 @@ const AdPlacements = () => {
       setValue("address", district.address);
       setValue("long", district.long);
       setValue("lat", district.lat);
-      setValue("type", district.type._id);
+      setValue("type", district?.type?._id);
 
-      setValue("format", district.format._id);
-      setValue("ward", district.ward._id);
+      setValue("format", district?.format?._id);
+      setValue("ward", district?.ward?._id);
 
       openNewSpaceModal();
     } catch (error) {
@@ -100,7 +105,15 @@ const AdPlacements = () => {
   }, []);
 
   const clearFormAndCloseModal = useCallback(() => {
-    reset({ address: "", long: "", lat: "" });
+    reset({
+      address: "",
+      long: null,
+      lat: null,
+      ward: "",
+      type: "",
+      format: "",
+      _id: "",
+    });
     setIsOpen(false);
   }, []);
 
@@ -136,9 +149,7 @@ const AdPlacements = () => {
 
     // DistrictsService.create({name: lngLat.addressDetail[0]['address_components'][2]["long_name"]})
   };
-   const viewSurface = function(data) {
-    
-   }
+  const viewSurface = function (data) {};
 
   const tableColumns = useMemo(
     (): TableColumn[] => [
@@ -153,19 +164,19 @@ const AdPlacements = () => {
         dataIndex: "long",
         key: "long",
         render: (_, district: AdsSpace) =>
-          "long:" + district.long + ", " + "lat: " + district.lat,
+          district.long + " -- " + district.lat,
       },
       {
         title: "Hình thức",
         dataIndex: "format",
         key: "format",
-        render: (_, district: AdsSpace) => district.format.name,
+        render: (_, district: AdsSpace) => district?.format?.name,
       },
       {
         title: "Loại",
         dataIndex: "type",
         key: "type",
-        render: (_, district: AdsSpace) => district.type.name,
+        render: (_, district: AdsSpace) => district?.type?.name,
       },
       {
         title: "Địa chỉ",
@@ -176,7 +187,7 @@ const AdPlacements = () => {
         title: "Phường",
         dataIndex: "type",
         key: "type",
-        render: (_, district: AdsSpace) => district.ward.name,
+        render: (_, district: AdsSpace) => district?.ward?.name,
       },
       {
         title: null,
@@ -205,7 +216,6 @@ const AdPlacements = () => {
             <Tooltip title="Xem chi tiết">
               <Button
                 type="primary"
-                
                 size="large"
                 icon={<FundViewOutlined />}
                 shape="circle"
