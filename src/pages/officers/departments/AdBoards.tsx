@@ -46,7 +46,7 @@ const AdBoards = () => {
   const dispatch = useAppDispatch();
   const [wards, setSpaces] = useState<AdsSpace[]>([]);
   const [lngLat, setLngLat] = useState<AdsLocation>();
-
+  const [previewImage, setPreviewImage] = useState('');
   const [types, setTypes] = useState<AdsType[]>([]);
   const [formats, setFormats] = useState<AdsType[]>([]);
   const [spaceOptions, setSpaceOptions] = useState<DropDownOption<string>[]>(
@@ -66,13 +66,13 @@ const AdBoards = () => {
     watch,
   } = useForm({
     defaultValues: {
-      long: 11,
-      lat: 11,
-      width: 11,
-      height: 11,
+      long: null,
+      lat: null,
+      width: null,
+      height: null,
       img_url: null,
-      type: "6596e99e06cf46614acc0c02",
-      space: "6597cdbcd21a51c11e5c1a9c",
+      type: "",
+      space: "",
       _id: "",
     },
   });
@@ -226,6 +226,7 @@ const AdBoards = () => {
       setValue("type", district.type._id);
       setValue("space", district.space._id);
 
+      setPreviewImage(district.img_url);
       openNewSurfaceModal();
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
@@ -238,9 +239,9 @@ const AdBoards = () => {
     reset({
       long: null,
       lat: null,
-      width: 0,
-      height: 0,
-      img_url: "",
+      width: null,
+      height: null,
+      img_url: null,
       type: "",
       space: "",
       _id: "",
@@ -313,11 +314,7 @@ const AdBoards = () => {
       console.log(info);
     },
   };
-  let imageUrl = watch("img_url"); // Assuming the name of the image field is 'imageUrl'
-
-  const normFile = (e) => {
-    return e;
-  };
+  
 
   return (
     <>
@@ -419,14 +416,15 @@ const AdBoards = () => {
               <Form.Item
                 label="Image"
                 name="img_url"
-                valuePropName="fileList"
-                getValueFromEvent={normFile}
+                // valuePropName="fileList"
+                //getValueFromEvent={normFile}
               >
                 <Upload
-                 
                   listType="picture"
+                  maxCount={1}
                   beforeUpload={() => false} // Prevent default upload behavior
                   onChange={(info) => {
+                    
                     setValue("img_url", info.file);
                   }}
                 >
