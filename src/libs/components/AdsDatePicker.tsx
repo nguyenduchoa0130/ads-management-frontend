@@ -31,6 +31,7 @@ const AdsDatePicker: FC<AdsDatePickerProps> = ({
               {...field}
               size='large'
               className='w-100'
+              style={{width: "100%"}}
               format='DD/MM/YYYY'
               placeholder={placeholder}
             />

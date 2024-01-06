@@ -15,7 +15,7 @@ export const SpaceEditRequestService = {
     return data;
   },
   update: async (payload: SpaceEditRequest): Promise<SpaceEditRequest> => {
-    const { data } = await axiosClient.patch(`api/space-edit-requests/${payload._id}`, payload);
+    const { data } = await axiosClient.put(`api/space-edit-requests/${payload._id}`, payload);
     return data;
   },
   remove: async (districtId: string): Promise<void> => {

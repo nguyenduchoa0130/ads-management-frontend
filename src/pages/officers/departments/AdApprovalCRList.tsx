@@ -1,4 +1,5 @@
 import {
+  CheckOutlined,
   DeleteOutlined,
   EditOutlined,
   FundViewOutlined,
@@ -31,6 +32,7 @@ import { SurfaceTypeService } from "@services/types.service";
 import { WardService } from "@services/wards.service";
 import { sharedActions } from "@slices/shared.slice";
 import {
+  Badge,
   Button,
   Col,
   DatePicker,
@@ -39,18 +41,21 @@ import {
   Space,
   Tabs,
   TabsProps,
+  Tag,
   Tooltip,
   Upload,
   UploadProps,
   message,
 } from "antd";
+import moment from "moment";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 const AdApprovalCRList = () => {
   const [reloadTrigger, setReloadTrigger] = useState(false);
   const [center, setCenter] = useState<AdsLocation>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenSurface, setIsOpenSurface] = useState<boolean>(false);
+
   const [spaceRequests, setSpaceRequests] = useState<SpaceEditRequest[]>([]);
   const [surfaceEditRequests, setSurfaceEditRequests] = useState<
     SurfaceEditRequest[]
@@ -91,6 +96,7 @@ const AdApprovalCRList = () => {
       ward: "",
       _id: "",
       reason: "",
+      surface: "",
       request_date: null,
     },
   });
@@ -101,24 +107,30 @@ const AdApprovalCRList = () => {
     setLngLat(lngLat);
   };
   const viewSurface = function (data) {};
-  const openNewSurfaceModal = useCallback(() => {
-    setIsOpen(true);
-  }, []);
-  const createSpace = async (formValue: {
-    name: string;
-    _id: string;
-  }): Promise<void> => {
+
+  const createSpaceEdit = async (formValue: any): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
-      let newSpace;
+      let res;
+
+      formValue.state = 2;
+      formValue.ward = formValue.ward?._id;
+      formValue.type = formValue.type?._id;
+      formValue.format = formValue.format?._id;
+      formValue.space = formValue.space?._id;
+
       if (formValue._id) {
-        newSpace = await SpaceService.update(formValue);
-      } else {
-        newSpace = await SpaceService.create(formValue);
+        res = await SpaceEditRequestService.update(formValue);
+        if (res) {
+          formValue._id = formValue.space;
+          res = await SpaceService.update(formValue);
+        }
       }
+
       clearFormAndCloseModal();
-      console.log(newSpace);
-      if (newSpace) setReloadTrigger((prev) => !prev);
+      const msg = res?.message;
+      AlertService.showMessage(AlertType.Success, msg);
+      if (res) setReloadTrigger((prev) => !prev);
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
       AlertService.showMessage(AlertType.Error, msg);
@@ -126,18 +138,20 @@ const AdApprovalCRList = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const createSurface = async (formValue: AdsSurface): Promise<void> => {
+  const createSurface = async (
+    formValue: SurfaceEditRequest
+  ): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
 
       let newSpace;
-      formValue.height = Number.parseFloat(formValue.height + "");
-      formValue.width = Number.parseFloat(formValue.width + "");
-      console.log(formValue);
+      // formValue.height = Number.parseFloat(formValue.height + "");
+      // formValue.width = Number.parseFloat(formValue.width + "");
+      // console.log(formValue);
       if (formValue._id) {
-        newSpace = await SurfaceService.update(formValue);
+        newSpace = await SurfaceEditRequestService.update(formValue);
       } else {
-        newSpace = await SurfaceService.create(formValue);
+        newSpace = await SurfaceEditRequestService.create(formValue);
       }
       clearFormAndCloseModal();
 
@@ -159,7 +173,7 @@ const AdApprovalCRList = () => {
       );
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
-        await SurfaceService.remove(district._id);
+        await SurfaceEditRequestService.remove(district._id);
         setReloadTrigger((prev) => !prev);
       }
     } catch (error) {
@@ -170,7 +184,7 @@ const AdApprovalCRList = () => {
     }
   };
 
-  const deleteSpace = async (district: SpaceEditRequest) => {
+  const deleteSpace = async (district: any) => {
     try {
       const msg = `Bạn có chắc chắn là muốn xoá vị trí ${district.long}, ${district.lat} không?`;
       const { isConfirmed } = await AlertService.showMessage(
@@ -179,7 +193,7 @@ const AdApprovalCRList = () => {
       );
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
-        await SurfaceService.remove(district._id);
+        await SpaceEditRequestService.remove(district._id);
         setReloadTrigger((prev) => !prev);
       }
     } catch (error) {
@@ -211,27 +225,8 @@ const AdApprovalCRList = () => {
     }
   };
 
-  const editSpace = async (district: SpaceEditRequest) => {
-    try {
-      setValue("_id", district._id);
-      setValue("address", district.address);
-      setValue("long", district.long);
-      setValue("lat", district.lat);
-      setValue("type", district?.type?._id);
-      setValue("format", district?.format?._id);
-      setValue("ward", district?.ward?._id);
-
-      openNewSpaceModal();
-    } catch (error) {
-      const msg = error?.response?.data?.message || error.message;
-      AlertService.showMessage(AlertType.Error, msg);
-    } finally {
-      dispatch(sharedActions.hideLoading());
-    }
-  };
-
-  const openNewSpaceModal = useCallback(() => {
-    setIsOpen(true);
+  const openNewSurfaceModal = useCallback(() => {
+    setIsOpenSurface(true);
   }, []);
 
   const clearFormAndCloseModal = useCallback(() => {
@@ -244,10 +239,31 @@ const AdApprovalCRList = () => {
       format: "",
       _id: "",
     });
-    setIsOpen(false);
+    // setIsOpenSpace(false);
+    setIsOpenSurface(false);
   }, []);
 
   useEffect(() => {
+    const getSpaces = async () => {
+      try {
+        dispatch(sharedActions.showLoading());
+        const spaces = await SpaceService.getAll();
+
+        let options: DropDownOption<string>[] = spaces.map((el) => {
+          return {
+            label: el.address,
+            value: el._id,
+          };
+        });
+        setSpaceOptions(options);
+      } catch (error) {
+        const msg = error?.response?.data?.message || error.message;
+        AlertService.showMessage(AlertType.Error, msg);
+      } finally {
+        dispatch(sharedActions.hideLoading());
+      }
+    };
+
     const getSpaceRequests = async () => {
       try {
         dispatch(sharedActions.showLoading());
@@ -259,7 +275,7 @@ const AdApprovalCRList = () => {
             value: el._id,
           };
         });
-        setSpaceOptions(options);
+
         setSpaceRequests(spaces);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
@@ -280,7 +296,7 @@ const AdApprovalCRList = () => {
             value: el._id,
           };
         });
-        setSpaceOptions(options);
+
         setSurfaceEditRequests(spaces);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
@@ -329,6 +345,7 @@ const AdApprovalCRList = () => {
       }
     };
 
+    getSpaces();
     getWards();
     getTypes();
     getSpaceRequests();
@@ -342,7 +359,7 @@ const AdApprovalCRList = () => {
       console.log(info);
     },
   };
-  const tableColumnsSpace = useMemo(
+  const tableColumnsSurface = useMemo(
     (): TableColumn[] => [
       {
         title: "#",
@@ -418,7 +435,7 @@ const AdApprovalCRList = () => {
     [spaceRequests.length]
   );
 
-  const tableColumnsSurface = useMemo(
+  const tableColumnsSpace = useMemo(
     (): TableColumn[] => [
       {
         title: "#",
@@ -427,70 +444,61 @@ const AdApprovalCRList = () => {
         render: (value: string) => value.slice(0, 8),
       },
       {
+        title: "Lý do",
+        dataIndex: "reason",
+        key: "reason",
+      },
+      {
         title: "Vị trí",
         dataIndex: "long",
         key: "long",
-        render: (_, district: AdsSpace) =>
+        render: (_, district: SpaceEditRequest) =>
           district.long + " -- " + district.lat,
       },
       {
-        title: "Hình thức",
-        dataIndex: "format",
-        key: "format",
-        render: (_, district: AdsSpace) => district?.format?.name,
+        title: "Trạng thái",
+        dataIndex: "long",
+        key: "long",
+        render: (_, district: SpaceEditRequest) =>
+          district.state == 1 ? (
+            <Tag color="orange">Chờ phê duyệt</Tag>
+          ) : (
+            <Tag color="green">Đã phê duyệt</Tag>
+          ),
       },
       {
-        title: "Loại",
-        dataIndex: "type",
-        key: "type",
-        render: (_, district: AdsSpace) => district?.type?.name,
+        title: "Ngày yêu cầu chỉnh sửa",
+        dataIndex: "request_date",
+        key: "request_date",
+        render: (_, district: SpaceEditRequest) =>
+          moment(district?.request_date).format("DD/MM/YYYY"),
       },
-      {
-        title: "Địa chỉ",
-        dataIndex: "address",
-        key: "address",
-      },
+
       {
         title: "Phường",
         dataIndex: "type",
         key: "type",
-        render: (_, district: AdsSpace) => district?.ward?.name,
+        render: (_, district: SpaceEditRequest) => district?.ward?.name,
       },
       {
-        title: null,
+        title: "Phê duyệt",
         dataIndex: null,
         key: "actions",
-        render: (_, space: SpaceEditRequest) => (
-          <Space>
-            <Tooltip title="Cập nhật">
-              <Button
-                onClick={() => editSpace(space)}
-                size="large"
-                icon={<EditOutlined />}
-                shape="circle"
-              ></Button>
-            </Tooltip>
-            <Tooltip title="Xoá">
-              <Button
-                type="primary"
-                danger
-                size="large"
-                icon={<DeleteOutlined />}
-                shape="circle"
-                onClick={() => deleteSpace(space)}
-              ></Button>
-            </Tooltip>
-            <Tooltip title="Xem chi tiết">
-              <Button
-                type="primary"
-                size="large"
-                icon={<FundViewOutlined />}
-                shape="circle"
-                onClick={() => viewSurface(space)}
-              ></Button>
-            </Tooltip>
-          </Space>
-        ),
+        render: (_, space: SpaceEditRequest) =>
+          space.state == 1 ? (
+            <Space>
+              <Tooltip title="Phê duyệt">
+                <Button
+                  onClick={() => createSpaceEdit(space)}
+                  size="large"
+                  icon={<CheckOutlined />}
+                  shape="circle"
+                ></Button>
+              </Tooltip>
+            </Space>
+          ) : (
+            ""
+          ),
       },
     ],
     [surfaceEditRequests.length]
@@ -528,20 +536,11 @@ const AdApprovalCRList = () => {
         YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO
       </Button>
 
-      <Button
-        size="large"
-        icon={<PlusOutlined />}
-        className="mb-3"
-        onClick={openNewSpaceModal}
-      >
-        YÊU CẦU CHỈNH SỬA VỊ TRÍ ĐẶT BẢNG
-      </Button>
-
       <Tabs defaultActiveKey="1" items={items} onChange={onChangeTabs} />
 
       <AdsFormModal
         width="80vw"
-        isOpen={isOpen}
+        isOpen={isOpenSurface}
         title="YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO"
         cancelBtnText="Đóng"
         confirmBtnText="Thêm"
@@ -559,7 +558,27 @@ const AdApprovalCRList = () => {
                 label="ID"
               />
             </Col>
+            <Col span={8} className="gutter-row">
+              <AdsInput
+                control={control}
+                error={errors.reason}
+                name="reason"
+                label="Lý do"
+                placeholder="Nhập Lý do"
+                rules={{ required: "Không được để trống" }}
+              />
+            </Col>
 
+            <Col span={4} className="gutter-row">
+              <AdsDatePicker
+                control={control}
+                error={errors.request_date}
+                name="requests_date"
+                label="Ngày yêu cầu chỉnh sửa"
+                placeholder="Nhập Lý do"
+                rules={{ required: "Không được để trống" }}
+              />
+            </Col>
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
@@ -612,8 +631,18 @@ const AdApprovalCRList = () => {
                 rules={{ required: "Không được để trống" }}
               ></FormControlDropdown>
             </Col>
-
-            <Col span={12} className="gutter-row">
+            <Col span={6} className="gutter-row">
+              <AdsInput
+                control={control}
+                error={errors.height}
+                name="height"
+                label="Bảng quảng cáo"
+                placeholder="id .."
+                rules={{ required: "Không được để trống" }}
+                isDisabled={true}
+              />
+            </Col>
+            <Col span={6} className="gutter-row">
               <FormControlDropdown
                 options={spaceOptions}
                 control={control}
@@ -628,10 +657,12 @@ const AdApprovalCRList = () => {
               <Form.Item
                 label="Image"
                 name="img_url"
+                style={{ width: "100%" }}
                 // valuePropName="fileList"
                 //getValueFromEvent={normFile}
               >
                 <Upload
+                  style={{ width: "100%" }}
                   listType="picture"
                   maxCount={1}
                   beforeUpload={() => false} // Prevent default upload behavior
@@ -639,127 +670,19 @@ const AdApprovalCRList = () => {
                     setValue("img_url", info.file);
                   }}
                 >
-                  <Button icon={<UploadOutlined />}>Click to upload</Button>
+                  <Button
+                    style={{ width: "100%" }}
+                    size="large"
+                    icon={<UploadOutlined />}
+                  >
+                    Click to upload
+                  </Button>
                 </Upload>
               </Form.Item>
             </Col>
           </Row>
           <div className="pt-1 pb-2 h-[600px]">
             <AdsMap onClickOnMap={getLongLat} lngLat={lngLat} />
-          </div>
-        </Form>
-      </AdsFormModal>
-
-      <AdsFormModal
-        width="80vw"
-        isOpen={isOpen}
-        title="THÊM ĐỊA ĐIỂM QUẢNG CÁO"
-        cancelBtnText="Đóng"
-        confirmBtnText="Thêm"
-        onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createSpace)}
-      >
-        <Form layout="vertical">
-          <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>
-            <Col span={6} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors._id}
-                name="_id"
-                isDisabled={true}
-                label="ID"
-              />
-            </Col>
-            <Col span={12} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors.address}
-                name="address"
-                label="Địa chỉ"
-                placeholder="Nhập tên địa chỉ"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-            <Col span={6} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors.long}
-                name="long"
-                label="Vĩ độ"
-                placeholder="Vĩ độ"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-            <Col span={6} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors.lat}
-                name="lat"
-                label="Kinh độ"
-                placeholder="Kinh độ"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-            <Col span={6} className="gutter-row">
-              <FormControlDropdown
-                options={wardOptions}
-                control={control}
-                error={errors.ward}
-                name="ward"
-                label="Tên phường"
-                placeholder="Nhập tên phường"
-                rules={{ required: "Không được để trống" }}
-              ></FormControlDropdown>
-            </Col>
-
-            <Col span={6} className="gutter-row">
-              <FormControlDropdown
-                options={typeOptions}
-                control={control}
-                error={errors.type}
-                name="type"
-                label="Loại"
-                placeholder="Nhập loại vị trí"
-                rules={{ required: "Không được để trống" }}
-              ></FormControlDropdown>
-            </Col>
-
-            <Col span={6} className="gutter-row">
-              <FormControlDropdown
-                options={formatOptions}
-                control={control}
-                error={errors.format}
-                name="format"
-                label="Hình thức quảng cáo"
-                placeholder="Nhập hình thức quảng cáo"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-
-            <Col span={6} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors.lat}
-                name="lat"
-                label="Lý do"
-                placeholder="Nhập Lý do"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-
-            <Col span={6} className="gutter-row">
-              <AdsDatePicker
-                control={control}
-                error={errors.request_date}
-                name="requests_date"
-                label="Lý do"
-                placeholder="Nhập Lý do"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-          </Row>
-          <div className="pt-1 pb-2 h-[600px]">
-            <AdsMap onClickOnMap={getLongLat} />
           </div>
         </Form>
       </AdsFormModal>
