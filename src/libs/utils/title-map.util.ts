@@ -12,6 +12,8 @@ titleMap.set('yc-chinh-sua', 'Yêu cầu chỉnh sửa');
 titleMap.set('yc-cap-phep', 'Yêu cầu cấp phép');
 titleMap.set('phan-cong-khu-vuc', 'Phân công khu vực');
 titleMap.set('can-bo-so-vh-tt', 'Trang Chủ');
+titleMap.set('ql-bao-cao', 'Quản lý báo cáo');
+
 titleMap.set(AlertType.Success, 'Thành Công');
 titleMap.set(AlertType.Error, 'Lỗi');
 titleMap.set(AlertType.Info, 'Thông Tin');

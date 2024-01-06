@@ -1,19 +1,25 @@
 import {
   CheckOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  FundViewOutlined,
+  PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import { useAppDispatch } from "@appHook/hooks";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
 import AdsDatePicker from "@components/AdsDatePicker";
 import FormControlDropdown from "@components/AdsDropdown";
 import AdsDynamicTable from "@components/AdsDynamicTable";
+import AdsEditor from "@components/AdsEditor";
 import AdsFormModal from "@components/AdsFormModal";
 import AdsInput from "@components/AdsInput";
 import AdsMap from "@components/AdsMap";
 import AlertType from "@enums/alert-type";
 import { AdsLocation } from "@interfaces/ads-location";
+import { Report } from "@interfaces/ads-report";
 import { AdsSpace } from "@interfaces/ads-space";
-import { SpaceEditRequest } from "@interfaces/ads-space-edit-requests";
-import { AdsSurface } from "@interfaces/ads-surface";
 import { SurfaceEditRequest } from "@interfaces/ads-surface-edit-request";
 import { AdsType } from "@interfaces/ads-type";
 import DropDownOption from "@interfaces/dropdown-option";
@@ -22,11 +28,13 @@ import TableColumn from "@interfaces/table-column";
 import { SpaceEditRequestService } from "@services/ads-space-edit-requests.service";
 import { SurfaceEditRequestService } from "@services/ads-surface-edit-request.service";
 import AlertService from "@services/alert.service";
+import { ReportService } from "@services/reports.service";
 import { SpaceService } from "@services/spaces.service";
 import { SurfaceService } from "@services/surfaces.service";
 import { SurfaceTypeService } from "@services/types.service";
 import { WardService } from "@services/wards.service";
 import { sharedActions } from "@slices/shared.slice";
+
 import {
   Badge,
   Button,
@@ -40,6 +48,7 @@ import {
   Tag,
   Tooltip,
   Upload,
+  UploadFile,
   UploadProps,
   message,
 } from "antd";
@@ -47,28 +56,54 @@ import moment from "moment";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
-const AdApprovalCRList = () => {
+const AdReports = () => {
   const [reloadTrigger, setReloadTrigger] = useState(false);
   const [center, setCenter] = useState<AdsLocation>(null);
   const [isOpenSurface, setIsOpenSurface] = useState<boolean>(false);
 
-  const [spaceRequests, setSpaceRequests] = useState<SpaceEditRequest[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [surfaceEditRequests, setSurfaceEditRequests] = useState<
     SurfaceEditRequest[]
   >([]);
   const dispatch = useAppDispatch();
   const [wards, setSpaces] = useState<AdsSpace[]>([]);
   const [lngLat, setLngLat] = useState<AdsLocation>();
-  const [previewImage, setPreviewImage] = useState("");
+  const [fileList1, setFileList1] = useState<UploadFile[]>([]);
+  const [fileList2, setFileList2] = useState<UploadFile[]>([]);
+  const [fileList, setFileList] = useState([]);
+
   const [types, setTypes] = useState<AdsType[]>([]);
   const [formats, setFormats] = useState<AdsType[]>([]);
   const [spaceOptions, setSpaceOptions] = useState<DropDownOption<string>[]>(
     []
   );
-  const [typeOptions, setTypeOptions] = useState<DropDownOption<string>[]>([]);
+  const [worker, setWorker] = useState({});
+  const [content, setContent] = useState("initial");
   const [formatOptions, setFormatOptions] = useState<DropDownOption<string>[]>(
     []
   );
+
+  const stateOptions = [
+    {
+      label: "Đang xử lý",
+      value: 0,
+    },
+    {
+      label: "Đã xử lý",
+      value: 1,
+    },
+  ];
+
+  const typeOptions = [
+    {
+      label: "Bảng quảng cáo",
+      value: 1,
+    },
+    {
+      label: "Điểm đặt biển quảng cáo",
+      value: 2,
+    },
+  ];
   const [wardOptions, setWardOptions] = useState<DropDownOption<string>[]>([]);
   const {
     reset,
@@ -80,28 +115,24 @@ const AdApprovalCRList = () => {
     watch,
   } = useForm({
     defaultValues: {
-      long: null,
-      lat: null,
-      width: null,
-      height: null,
-      img_url: null,
-      type: "",
-      space: "",
-      address: "",
-      format: "",
-      ward: "",
-      _id: "",
-      reason: "",
-      surface: "",
-      request_date: null,
+      _id: null,
+      surface: null,
+      space: null,
+      type: null,
+      report_date: null,
+      content: null,
+      email: null,
+      phone: null,
+      state: null,
+      img_url_1: null,
+      img_url_2: null,
+      file_1: null,
+      file_2: null,
+      reporter: null,
+      report_format: null,
     },
   });
 
-  const getLongLat = (lngLat: AdsLocation) => {
-    setValue("long", lngLat.lng);
-    setValue("lat", lngLat.lat);
-    setLngLat(lngLat);
-  };
   const viewSurface = function (data) {};
 
   const createSpaceEditRequest = async (formValue: any): Promise<void> => {
@@ -134,27 +165,16 @@ const AdApprovalCRList = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const createSurfaceEditRequest = async (
-    formValue: any
-  ): Promise<void> => {
+  const createSurfaceEditRequest = async (formValue: any): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
 
       let res;
-      formValue.space = formValue.space?._id;
-      formValue.surface = formValue.surface?._id;
-      formValue.type = formValue.type?._id;
-      formValue.state = 2;
+
       if (formValue._id) {
-        res = await SurfaceEditRequestService.update(formValue);
-        if (res) {
-          console.log(formValue);
-          formValue._id = formValue.surface;
-          formValue.img_url = formValue.img_url ? formValue.img_url : null;
-          res = await SurfaceService.update(formValue);
-        }
-      } 
-     
+        res = await ReportService.update(formValue);
+      }
+
       clearFormAndCloseModal();
       const msg = res?.message;
       AlertService.showMessage(AlertType.Success, msg);
@@ -167,9 +187,9 @@ const AdApprovalCRList = () => {
     }
   };
 
-  const deleteSurface = async (district: SurfaceEditRequest) => {
+  const deleteSurface = async (district: Report) => {
     try {
-      const msg = `Bạn có chắc chắn là muốn xoá vị trí ${district.long}, ${district.lat} không?`;
+      const msg = `Bạn có chắc chắn là muốn xoá không?`;
       const { isConfirmed } = await AlertService.showMessage(
         AlertType.Question,
         msg
@@ -206,19 +226,42 @@ const AdApprovalCRList = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const editSurface = async (district: SurfaceEditRequest) => {
+  const editSurface = async (report: Report) => {
     try {
-      setValue("_id", district._id);
+      setValue("_id", report._id);
+      setValue("reporter", report.reporter);
+      setValue("email", report.email);
+      setValue("phone", report.phone);
+      setValue("type", report.type);
+      setValue("state", report.state);
+      setValue("report_date", moment(report.report_date));
 
-      setValue("long", district.long);
-      setValue("lat", district.lat);
+      setValue("report_format", report.report_format?._id);
+      setValue("space", report?.space?._id);
+      setValue("surface", report?.surface?._id);
 
-      setValue("width", district.width);
-      setValue("height", district.height);
-      setValue("type", district.type._id);
-      setValue("space", district.space._id);
+      let fileList: UploadFile[] = [
+        {
+          uid: "img_url_1",
+          name: report.img_url_1,
+          status: "done",
+          url: process.env.PUBLIC_URL + "/" + report.img_url_1,
+          thumbUrl: process.env.PUBLIC_URL + "/" + report.img_url_1,
+        },
+      ];
+      let fileList2: UploadFile[] = [
+        {
+          uid: "img_url_2",
+          name: report.img_url_2,
+          status: "done",
+          url: process.env.PUBLIC_URL + "/" + report.img_url_2,
+          thumbUrl: process.env.PUBLIC_URL + "/" + report.img_url_2,
+        },
+      ];
 
-      setPreviewImage(district.img_url);
+      setFileList1(fileList);
+      setFileList2(fileList2);
+      setContent(report.content);
       openNewSurfaceModal();
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
@@ -234,13 +277,19 @@ const AdApprovalCRList = () => {
 
   const clearFormAndCloseModal = useCallback(() => {
     reset({
-      address: "",
-      long: null,
-      lat: null,
-      ward: "",
-      type: "",
-      format: "",
-      _id: "",
+      _id: null,
+      surface: null,
+      space: null,
+      type: null,
+      report_date: null,
+      content: null,
+      email: null,
+      phone: null,
+      state: null,
+      img_url_1: null,
+      img_url_2: null,
+      reporter: null,
+      report_format: null,
     });
     // setIsOpenSpace(false);
     setIsOpenSurface(false);
@@ -267,19 +316,12 @@ const AdApprovalCRList = () => {
       }
     };
 
-    const getSpaceRequests = async () => {
+    const getReports = async () => {
       try {
         dispatch(sharedActions.showLoading());
-        const spaces = await SpaceEditRequestService.getAll();
+        const spaces = await ReportService.getAll();
 
-        let options: DropDownOption<string>[] = spaces.map((el) => {
-          return {
-            label: el.address,
-            value: el._id,
-          };
-        });
-
-        setSpaceRequests(spaces);
+        setReports(spaces);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
         AlertService.showMessage(AlertType.Error, msg);
@@ -319,7 +361,7 @@ const AdApprovalCRList = () => {
             value: el._id,
           };
         });
-        setTypeOptions(options);
+
         setTypes(wards);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
@@ -351,17 +393,15 @@ const AdApprovalCRList = () => {
     getSpaces();
     getWards();
     getTypes();
-    getSpaceRequests();
+    getReports();
     getSurfaceRequests();
   }, [reloadTrigger]);
 
   //
-  const props: UploadProps = {
-    name: "file",
-    onChange(info) {
-      console.log(info);
-    },
+  const getContent = (data) => {
+    setValue("content", data);
   };
+
   const tableColumnsSurface = useMemo(
     (): TableColumn[] => [
       {
@@ -374,163 +414,93 @@ const AdApprovalCRList = () => {
         title: "Image",
         dataIndex: "long",
         key: "long",
-        render: (_, district: AdsSurface) => (
-          <img
-            width="130"
-            height="60"
-            src={
-              process.env.REACT_APP_BACKEND_BASE_URL + "/" + district.img_url
-            }
-          />
+        render: (_, district: Report) => (
+          <>
+            <img
+              width="130"
+              height="60"
+              src={
+                process.env.REACT_APP_BACKEND_BASE_URL +
+                "/" +
+                district.img_url_1
+              }
+            />
+
+            <img
+              className="ml-3"
+              width="130"
+              height="60"
+              src={
+                process.env.REACT_APP_BACKEND_BASE_URL +
+                "/" +
+                district.img_url_2
+              }
+            />
+          </>
         ),
       },
-      {
-        title: "Lý do",
-        dataIndex: "reason",
-        key: "reason",
-      
-      },
-      {
-        title: "Vị trí",
-        dataIndex: "long",
-        key: "long",
-        render: (_, district: SurfaceEditRequest) =>
-          district.long + " -- " + district.lat,
-      },
+     
+
       {
         title: "Trạng thái",
         dataIndex: "long",
         key: "long",
-        render: (_, district: SurfaceEditRequest) =>
-          district.state == 1 ? (
-            <Tag color="orange">Chờ phê duyệt</Tag>
+        render: (_, district: Report) =>
+          district.state == 0 ? (
+            <Tag color="orange">Đang xử lý</Tag>
           ) : (
-            <Tag color="green">Đã phê duyệt</Tag>
+            <Tag color="green">Đã xử lý</Tag>
           ),
       },
 
       {
-        title: "Ngày yêu cầu chỉnh sửa",
-        dataIndex: "request_date",
-        key: "request_date",
-        render: (_, district: SurfaceEditRequest) =>
-          moment(district?.request_date).format("DD/MM/YYYY"),
+        title: "Ngày tạo",
+        dataIndex: "report_date",
+        key: "report_date",
+        render: (_, district: Report) =>
+          moment(district.report_date).format("DD/MM/YYYY"),
       },
-      
+
       {
-        title: "Phê duyệt",
+        title: "",
         dataIndex: null,
         key: "actions",
-        render: (_, space: SurfaceEditRequest) =>
-          space.state == 1 ? (
-            <Space>
-              <Tooltip title="Phê duyệt">
-                <Button
-                  onClick={() => createSurfaceEditRequest(space)}
-                  size="large"
-                  icon={<CheckOutlined />}
-                  shape="circle"
-                ></Button>
-              </Tooltip>
-            </Space>
-          ) : (
-            ""
-          ),
+        render: (_, space: Report) => (
+          <Space>
+            <Tooltip title="Cập nhật">
+              <Button
+                onClick={() => editSurface(space)}
+                size="large"
+                icon={<EditOutlined />}
+                shape="circle"
+              ></Button>
+            </Tooltip>
+            <Tooltip title="Xoá">
+              <Button
+                type="primary"
+                danger
+                size="large"
+                icon={<DeleteOutlined />}
+                shape="circle"
+                onClick={() => deleteSurface(space)}
+              ></Button>
+            </Tooltip>
+            <Tooltip title="Xem chi tiết">
+              <Button
+                type="primary"
+                size="large"
+                icon={<FundViewOutlined />}
+                shape="circle"
+                onClick={() => viewSurface(space)}
+              ></Button>
+            </Tooltip>
+          </Space>
+        ),
       },
     ],
-    [spaceRequests.length]
+    [reports.length]
   );
 
-  const tableColumnsSpace = useMemo(
-    (): TableColumn[] => [
-      {
-        title: "#",
-        dataIndex: "_id",
-        key: "_id",
-        render: (value: string) => value.slice(0, 8),
-      },
-      {
-        title: "Lý do",
-        dataIndex: "reason",
-        key: "reason",
-      },
-      {
-        title: "Vị trí",
-        dataIndex: "long",
-        key: "long",
-        render: (_, district: SpaceEditRequest) =>
-          district.long + " -- " + district.lat,
-      },
-      {
-        title: "Trạng thái",
-        dataIndex: "long",
-        key: "long",
-        render: (_, district: SpaceEditRequest) =>
-          district.state == 1 ? (
-            <Tag color="orange">Chờ phê duyệt</Tag>
-          ) : (
-            <Tag color="green">Đã phê duyệt</Tag>
-          ),
-      },
-      {
-        title: "Ngày yêu cầu chỉnh sửa",
-        dataIndex: "request_date",
-        key: "request_date",
-        render: (_, district: SpaceEditRequest) =>
-          moment(district?.request_date).format("DD/MM/YYYY"),
-      },
-
-      {
-        title: "Phường",
-        dataIndex: "type",
-        key: "type",
-        render: (_, district: SpaceEditRequest) => district?.ward?.name,
-      },
-      {
-        title: "Phê duyệt",
-        dataIndex: null,
-        key: "actions",
-        render: (_, space: SpaceEditRequest) =>
-          space.state == 1 ? (
-            <Space>
-              <Tooltip title="Phê duyệt">
-                <Button
-                  onClick={() => createSpaceEditRequest(space)}
-                  size="large"
-                  icon={<CheckOutlined />}
-                  shape="circle"
-                ></Button>
-              </Tooltip>
-            </Space>
-          ) : (
-            ""
-          ),
-      },
-    ],
-    [surfaceEditRequests.length]
-  );
-  const items: TabsProps["items"] = [
-    {
-      key: "1",
-      label: "Yêu cầu chỉnh sửa vị trí",
-      children: (
-        <AdsDynamicTable dataSrc={spaceRequests} cols={tableColumnsSpace} />
-      ),
-    },
-    {
-      key: "2",
-      label: "Yêu cầu chỉnh sửa biển quảng cáo",
-      children: (
-        <AdsDynamicTable
-          dataSrc={surfaceEditRequests}
-          cols={tableColumnsSurface}
-        />
-      ),
-    },
-  ];
-  const onChangeTabs = (key: string) => {
-    console.log(key);
-  };
   return (
     <>
       {/* <Button
@@ -542,18 +512,24 @@ const AdApprovalCRList = () => {
         YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO
       </Button> */}
 
-      <Tabs defaultActiveKey="1" items={items} onChange={onChangeTabs} />
+      <AdsDynamicTable
+      
+        dataSrc={reports}
+        cols={tableColumnsSurface}
+        hasFilter={true}
+        searchByFields={["content"]}
+      />
 
       <AdsFormModal
         width="80vw"
         isOpen={isOpenSurface}
-        title="YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO"
+        title="Báo cáo"
         cancelBtnText="Đóng"
         confirmBtnText="Thêm"
         onCancel={clearFormAndCloseModal}
         onSubmit={handleSubmit(createSurfaceEditRequest)}
       >
-        <Form layout="vertical">
+        <Form layout="vertical" initialValues={worker}>
           <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>
             <Col span={4} className="gutter-row">
               <AdsInput
@@ -567,10 +543,10 @@ const AdApprovalCRList = () => {
             <Col span={8} className="gutter-row">
               <AdsInput
                 control={control}
-                error={errors.reason}
-                name="reason"
-                label="Lý do"
-                placeholder="Nhập Lý do"
+                error={errors.reporter}
+                name="reporter"
+                label="Tên người báo cáo"
+                placeholder=""
                 rules={{ required: "Không được để trống" }}
               />
             </Col>
@@ -578,9 +554,10 @@ const AdApprovalCRList = () => {
             <Col span={4} className="gutter-row">
               <AdsDatePicker
                 control={control}
-                error={errors.request_date}
-                name="requests_date"
-                label="Ngày yêu cầu chỉnh sửa"
+                isDisabled={true}
+                error={errors.report_date}
+                name="report_date"
+                label="Ngày báo cáo"
                 placeholder="Nhập Lý do"
                 rules={{ required: "Không được để trống" }}
               />
@@ -588,40 +565,20 @@ const AdApprovalCRList = () => {
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
-                error={errors.long}
-                name="long"
-                label="Vĩ độ"
-                placeholder="Vĩ độ"
+                error={errors.email}
+                name="email"
+                label="Email"
+                placeholder="Email"
                 rules={{ required: "Không được để trống" }}
               />
             </Col>
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
-                error={errors.long}
-                name="long"
-                label="Vĩ độ"
-                placeholder="Vĩ độ"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-            <Col span={4} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors.height}
-                name="height"
-                label="Chiều dài (m)"
-                placeholder="Chiều dài"
-                rules={{ required: "Không được để trống" }}
-              />
-            </Col>
-            <Col span={4} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors.width}
-                name="width"
-                label="Chiều rộng (m)"
-                placeholder="Chiều rộng"
+                error={errors.phone}
+                name="phone"
+                label="Số điện thoại"
+                placeholder="Số điện thoại"
                 rules={{ required: "Không được để trống" }}
               />
             </Col>
@@ -637,43 +594,57 @@ const AdApprovalCRList = () => {
                 rules={{ required: "Không được để trống" }}
               ></FormControlDropdown>
             </Col>
-            <Col span={6} className="gutter-row">
+
+            <Col span={8} className="gutter-row" style={{display:'none'}}>
               <AdsInput
-                control={control}
-                error={errors.height}
-                name="height"
-                label="Bảng quảng cáo"
-                placeholder="id .."
-                rules={{ required: "Không được để trống" }}
-                isDisabled={true}
-              />
-            </Col>
-            <Col span={6} className="gutter-row">
-              <FormControlDropdown
-                options={spaceOptions}
                 control={control}
                 error={errors.space}
                 name="space"
-                label="Điểm đặt bảng quảng cáo"
-                placeholder="Nhập điểm đặt bảng quảng cáo"
+                label="Điểm quảng cáo"
+                placeholder=""
+               
+              />
+            </Col>
+
+            <Col span={8} className="gutter-row" style={{display:'none'}} >
+              <AdsInput
+                control={control}
+                error={errors.surface}
+                name="surface"
+                label="Biển quảng cáo"
+                placeholder=""
+               
+              />
+            </Col>
+
+            <Col span={6} className="gutter-row">
+              <FormControlDropdown
+                options={stateOptions}
+                control={control}
+                error={errors.surface}
+                name="state"
+                label="Trạng thái"
+                placeholder="Chọn trạng thái"
                 rules={{ required: "Không được để trống" }}
               ></FormControlDropdown>
             </Col>
-            <Col span={12} className="gutter-row">
+            <Col span={6} className="gutter-row">
               <Form.Item
-                label="Image"
-                name="img_url"
+                label="Image 1"
+                name="file_1"
                 style={{ width: "100%" }}
                 // valuePropName="fileList"
                 //getValueFromEvent={normFile}
               >
                 <Upload
-                  style={{ width: "100%" }}
                   listType="picture"
                   maxCount={1}
+                  fileList={fileList1}
                   beforeUpload={() => false} // Prevent default upload behavior
                   onChange={(info) => {
-                    setValue("img_url", info.file);
+  
+                    setFileList1(info.fileList);
+                    setValue("file_1", info.file);
                   }}
                 >
                   <Button
@@ -686,14 +657,46 @@ const AdApprovalCRList = () => {
                 </Upload>
               </Form.Item>
             </Col>
+            <Col span={6} className="gutter-row">
+              <Form.Item
+                label="Image 2"
+                name="file_2"
+                style={{ width: "100%" }}
+                // valuePropName="fileList"
+                //getValueFromEvent={normFile}
+              >
+                <Upload
+                  listType="picture"
+                  maxCount={1}
+                  fileList={fileList2}
+                  beforeUpload={() => false} // Prevent default upload behavior
+                  onChange={(info) => {
+                   
+                    setValue("file_2", info.file);
+                    setFileList2(info.fileList);
+                  }}
+                >
+                  <Button
+                    style={{ width: "100%" }}
+                    size="large"
+                    icon={<UploadOutlined />}
+                  >
+                    Click to upload
+                  </Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            <Col span={24} className="gutter-row">
+              <AdsEditor initialContent={content} onEditorChange={getContent} />
+            </Col>
           </Row>
-          <div className="pt-1 pb-2 h-[600px]">
+          {/* <div className="pt-1 pb-2 h-[600px]">
             <AdsMap onClickOnMap={getLongLat} lngLat={lngLat} />
-          </div>
+          </div> */}
         </Form>
       </AdsFormModal>
     </>
   );
 };
 
-export default AdApprovalCRList;
+export default AdReports;

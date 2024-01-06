@@ -27,3 +27,6 @@ body * {
   right: 4% !important;
   justify-content: flex-end;
 }
+.ck-editor__editable_inline {
+  min-height: 300px;
+}

@@ -4,4 +4,5 @@ export default interface TableColumn {
   dataIndex: string;
   render?: Function;
   align?: 'left' | 'center' | 'right';
+  
 }

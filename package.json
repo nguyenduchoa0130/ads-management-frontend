@@ -8,6 +8,8 @@
   "proxy": "http://localhost:3001",
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
+    "@ckeditor/ckeditor5-build-classic": "^40.2.0",
+    "@ckeditor/ckeditor5-react": "^6.2.0",
     "@craco/craco": "7.1.0",
     "@react-google-maps/api": "^2.19.2",
     "@reduxjs/toolkit": "1.9.7",

@@ -12,6 +12,7 @@ import {
   QuestionCircleOutlined,
   TeamOutlined,
   UnorderedListOutlined,
+  WarningFilled,
 } from '@ant-design/icons';
 import { AdminRole } from '@enums/admin-role';
 import { LayoutMenuItem } from '@interfaces/layout-menu-item';
@@ -32,6 +33,12 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
     label: 'Quản lý tài khoản',
     activeKey: 'ql-tai-khoan',
     icon: <TeamOutlined />,
+  },
+  {
+    path: 'ql-bao-cao',
+    label: 'Quản lý báo cáo',
+    activeKey: 'ql-bao-cao',
+    icon: <WarningFilled />,
   },
   {
     path: 'ql-khu-vuc',
@@ -75,6 +82,7 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
     activeKey: 'yc-cap-phep',
     icon: <QuestionCircleOutlined />,
   },
+
 ];
 
 interface AdminLayoutProps {

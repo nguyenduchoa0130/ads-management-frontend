@@ -3,6 +3,7 @@ import LoadingSpinner from '@components/LoadingSpinner';
 import { AdminRole } from '@enums/admin-role';
 import AdminLayout from '@layouts/AdminLayout';
 import ClientLayout from '@layouts/ClientLayout';
+import AdReports from '@pages/officers/departments/AdReports';
 import { lazy } from 'react';
 import { useRoutes } from 'react-router-dom';
 
@@ -83,6 +84,10 @@ const App = () => {
         {
           path: 'phan-cong-khu-vuc',
           element: <LazyLoadComponent component={<AreaAssignment />} />,
+        },
+        {
+          path: 'ql-bao-cao',
+          element: <LazyLoadComponent component={<AdReports />} />,
         },
       ],
     },

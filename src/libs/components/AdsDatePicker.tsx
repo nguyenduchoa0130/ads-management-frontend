@@ -1,3 +1,4 @@
+
 import { DatePicker, Form } from 'antd';
 import { FC } from 'react';
 import { Controller } from 'react-hook-form';
@@ -9,6 +10,8 @@ interface AdsDatePickerProps {
   name: string;
   label?: string;
   placeholder?: string;
+  isDisabled?: boolean;
+
 }
 
 const AdsDatePicker: FC<AdsDatePickerProps> = ({
@@ -18,14 +21,17 @@ const AdsDatePicker: FC<AdsDatePickerProps> = ({
   error = null,
   label = 'Form Control Label',
   placeholder = 'Calendar placeholder',
+  isDisabled = false,
 }) => {
   return (
     <>
-      <Form.Item label={label} validateStatus={error ? 'error' : ''} help={error && error.message}>
+      <Form.Item label={label} validateStatus={error ? 'error' : ''} help={error && error.message} >
+        
         <Controller
           name={name}
           control={control}
           rules={rules}
+          disabled={isDisabled}
           render={({ field }) => (
             <DatePicker
               {...field}

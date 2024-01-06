@@ -29,6 +29,7 @@ const AdsFormModal: FC<AdsFormModalProps> = ({
       <Modal
         open={isOpen}
         title={title || 'Modal title'}
+       
         footer={null}
         onCancel={onCancel}
         centered
