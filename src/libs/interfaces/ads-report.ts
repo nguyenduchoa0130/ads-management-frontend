@@ -15,6 +15,7 @@ export interface Report {
   phone: string;
   state: number;
   img_url_1: string;
+  method: string;
   img_url_2: string;
   reporter: string;
   report_format: AdsType;

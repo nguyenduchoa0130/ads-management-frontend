@@ -31,7 +31,7 @@ import AlertService from "@services/alert.service";
 import { ReportService } from "@services/reports.service";
 import { SpaceService } from "@services/spaces.service";
 import { SurfaceService } from "@services/surfaces.service";
-import { SurfaceTypeService } from "@services/types.service";
+import { ReportFormatService, SurfaceTypeService } from "@services/types.service";
 import { WardService } from "@services/wards.service";
 import { sharedActions } from "@slices/shared.slice";
 
@@ -62,18 +62,14 @@ const AdReports = () => {
   const [isOpenSurface, setIsOpenSurface] = useState<boolean>(false);
 
   const [reports, setReports] = useState<Report[]>([]);
-  const [surfaceEditRequests, setSurfaceEditRequests] = useState<
-    SurfaceEditRequest[]
-  >([]);
   const dispatch = useAppDispatch();
-  const [wards, setSpaces] = useState<AdsSpace[]>([]);
+  const [reportFormat, setReportFormat] = useState<DropDownOption<string>[]>([]);
   const [lngLat, setLngLat] = useState<AdsLocation>();
   const [fileList1, setFileList1] = useState<UploadFile[]>([]);
   const [fileList2, setFileList2] = useState<UploadFile[]>([]);
-  const [fileList, setFileList] = useState([]);
+
 
   const [types, setTypes] = useState<AdsType[]>([]);
-  const [formats, setFormats] = useState<AdsType[]>([]);
   const [spaceOptions, setSpaceOptions] = useState<DropDownOption<string>[]>(
     []
   );
@@ -130,6 +126,7 @@ const AdReports = () => {
       file_2: null,
       reporter: null,
       report_format: null,
+      method:""
     },
   });
 
@@ -234,6 +231,7 @@ const AdReports = () => {
       setValue("phone", report.phone);
       setValue("type", report.type);
       setValue("state", report.state);
+      setValue("method", report.method);
       setValue("report_date", moment(report.report_date));
 
       setValue("report_format", report.report_format?._id);
@@ -290,6 +288,7 @@ const AdReports = () => {
       img_url_2: null,
       reporter: null,
       report_format: null,
+      method:""
     });
     // setIsOpenSpace(false);
     setIsOpenSurface(false);
@@ -330,39 +329,19 @@ const AdReports = () => {
       }
     };
 
-    const getSurfaceRequests = async () => {
+    const getReportFormats = async () => {
       try {
         dispatch(sharedActions.showLoading());
-        const spaces = await SurfaceEditRequestService.getAll();
+        const spaces = await ReportFormatService.getAll();
 
         let options: DropDownOption<string>[] = spaces.map((el) => {
-          return {
-            label: el.long + "," + el.lat,
-            value: el._id,
-          };
-        });
-
-        setSurfaceEditRequests(spaces);
-      } catch (error) {
-        const msg = error?.response?.data?.message || error.message;
-        AlertService.showMessage(AlertType.Error, msg);
-      } finally {
-        dispatch(sharedActions.hideLoading());
-      }
-    };
-    const getTypes = async () => {
-      try {
-        dispatch(sharedActions.showLoading());
-        const wards = await SurfaceTypeService.getAll();
-
-        let options: DropDownOption<string>[] = wards.map((el) => {
           return {
             label: el.name,
             value: el._id,
           };
         });
 
-        setTypes(wards);
+        setFormatOptions(options);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
         AlertService.showMessage(AlertType.Error, msg);
@@ -370,6 +349,7 @@ const AdReports = () => {
         dispatch(sharedActions.hideLoading());
       }
     };
+
     const getWards = async () => {
       try {
         dispatch(sharedActions.showLoading());
@@ -392,9 +372,8 @@ const AdReports = () => {
 
     getSpaces();
     getWards();
-    getTypes();
     getReports();
-    getSurfaceRequests();
+    getReportFormats();
   }, [reloadTrigger]);
 
   //
@@ -417,7 +396,7 @@ const AdReports = () => {
         render: (_, district: Report) => (
           <>
             <img
-              width="130"
+              width="80"
               height="60"
               src={
                 process.env.REACT_APP_BACKEND_BASE_URL +
@@ -428,8 +407,8 @@ const AdReports = () => {
 
             <img
               className="ml-3"
-              width="130"
-              height="60"
+              width="120"
+              height="40"
               src={
                 process.env.REACT_APP_BACKEND_BASE_URL +
                 "/" +
@@ -439,15 +418,38 @@ const AdReports = () => {
           </>
         ),
       },
-     
-
+      {
+        title: "Người báo cáo",
+        dataIndex: "reporter",
+        key: "reporter",
+        render: (_, district: Report) => {
+          
+          return (<>{district.reporter}<br/><Tag className="mt-3" color="orange">{district?.email}</Tag><Tag  color="orange">{district.phone}</Tag></>) ;
+        }
+      },
+      {
+        title: "Hình thức báo cáo",
+        dataIndex: "report_format",
+        key: "report_format",
+        render: (_, district: Report) => {
+          return district.report_format.name;
+        }
+      },
+      {
+        title: "Biển quảng cáo/Điểm",
+        dataIndex: "report_format",
+        key: "report_format",
+        render: (_, district: Report) => {
+          return district.space?.address || (<><Tag color="success">{district.surface?.lat}</Tag><Tag>{district.surface?.long}</Tag></>);
+        }
+      },
       {
         title: "Trạng thái",
         dataIndex: "long",
         key: "long",
         render: (_, district: Report) =>
           district.state == 0 ? (
-            <Tag color="orange">Đang xử lý</Tag>
+            <Tag  color="orange">Đang xử lý</Tag>
           ) : (
             <Tag color="green">Đã xử lý</Tag>
           ),
@@ -530,7 +532,7 @@ const AdReports = () => {
         onSubmit={handleSubmit(createSurfaceEditRequest)}
       >
         <Form layout="vertical" initialValues={worker}>
-          <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>
+          <Row gutter={{ xs: 8, sm: 16, md: 16, lg: 18 }}>
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
@@ -550,7 +552,16 @@ const AdReports = () => {
                 rules={{ required: "Không được để trống" }}
               />
             </Col>
-
+            <Col span={12} className="gutter-row">
+              <AdsInput
+                control={control}
+                error={errors.method}
+                name="method"
+                label="Cách xử lý"
+                placeholder=""
+                rules={{ required: "Không được để trống" }}
+              />
+            </Col>
             <Col span={4} className="gutter-row">
               <AdsDatePicker
                 control={control}
@@ -559,9 +570,10 @@ const AdReports = () => {
                 name="report_date"
                 label="Ngày báo cáo"
                 placeholder="Nhập Lý do"
-                rules={{ required: "Không được để trống" }}
+                
               />
             </Col>
+        
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
@@ -572,6 +584,7 @@ const AdReports = () => {
                 rules={{ required: "Không được để trống" }}
               />
             </Col>
+           
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
@@ -583,12 +596,24 @@ const AdReports = () => {
               />
             </Col>
 
-            <Col span={4} className="gutter-row">
+            <Col span={4} className="gutter-row" >
               <FormControlDropdown
                 options={typeOptions}
                 control={control}
                 error={errors.type}
                 name="type"
+                label="Loại"
+                isDisabled={true}
+                placeholder="Nhập loại bảng quảng cáo"
+                rules={{ required: "Không được để trống" }}
+              ></FormControlDropdown>
+            </Col>
+            <Col span={4} className="gutter-row">
+              <FormControlDropdown
+                options={formatOptions}
+                control={control}
+                error={errors.report_format}
+                name="report_format"
                 label="Loại"
                 placeholder="Nhập loại bảng quảng cáo"
                 rules={{ required: "Không được để trống" }}
@@ -617,7 +642,7 @@ const AdReports = () => {
               />
             </Col>
 
-            <Col span={6} className="gutter-row">
+            <Col span={4} className="gutter-row">
               <FormControlDropdown
                 options={stateOptions}
                 control={control}
