@@ -11,6 +11,7 @@ export interface SurfaceEditRequest {
   height: number;
   img_url: string;
   reason: string;
+  state: number;
   type: AdsType;
   surface:AdsSurface ;
   space: AdsSpace;

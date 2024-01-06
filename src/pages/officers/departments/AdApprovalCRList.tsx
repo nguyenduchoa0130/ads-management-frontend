@@ -108,7 +108,7 @@ const AdApprovalCRList = () => {
   };
   const viewSurface = function (data) {};
 
-  const createSpaceEdit = async (formValue: any): Promise<void> => {
+  const createSpaceEditRequest = async (formValue: any): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
       let res;
@@ -138,24 +138,31 @@ const AdApprovalCRList = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const createSurface = async (
-    formValue: SurfaceEditRequest
+  const createSurfaceEditRequest = async (
+    formValue: any
   ): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
 
-      let newSpace;
-      // formValue.height = Number.parseFloat(formValue.height + "");
-      // formValue.width = Number.parseFloat(formValue.width + "");
-      // console.log(formValue);
+      let res;
+      formValue.space = formValue.space?._id;
+      formValue.surface = formValue.surface?._id;
+      formValue.type = formValue.type?._id;
+      formValue.state = 2;
       if (formValue._id) {
-        newSpace = await SurfaceEditRequestService.update(formValue);
-      } else {
-        newSpace = await SurfaceEditRequestService.create(formValue);
-      }
+        res = await SurfaceEditRequestService.update(formValue);
+        if (res) {
+          console.log(formValue);
+          formValue._id = formValue.surface;
+          formValue.img_url = formValue.img_url ? formValue.img_url : null;
+          res = await SurfaceService.update(formValue);
+        }
+      } 
+     
       clearFormAndCloseModal();
-
-      if (newSpace) setReloadTrigger((prev) => !prev);
+      const msg = res?.message;
+      AlertService.showMessage(AlertType.Success, msg);
+      if (res) setReloadTrigger((prev) => !prev);
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
       AlertService.showMessage(AlertType.Error, msg);
@@ -369,67 +376,70 @@ const AdApprovalCRList = () => {
       },
       {
         title: "Image",
-        dataIndex: "request_date",
-        key: "request_date",
-        render: (_, district: SurfaceEditRequest) => district.request_date,
+        dataIndex: "long",
+        key: "long",
+        render: (_, district: AdsSurface) => (
+          <img
+            width="130"
+            height="60"
+            src={
+              process.env.REACT_APP_BACKEND_BASE_URL + "/" + district.img_url
+            }
+          />
+        ),
+      },
+      {
+        title: "Lý do",
+        dataIndex: "reason",
+        key: "reason",
+      
       },
       {
         title: "Vị trí",
         dataIndex: "long",
         key: "long",
         render: (_, district: SurfaceEditRequest) =>
-          "[" + district.long + ", " + district.lat + "]",
-      },
-
-      {
-        title: "Loại",
-        dataIndex: "type",
-        key: "type",
-        render: (_, district: SurfaceEditRequest) => district?.type?.name,
+          district.long + " -- " + district.lat,
       },
       {
-        title: "Kích thước",
-        dataIndex: "height",
-        key: "height",
+        title: "Trạng thái",
+        dataIndex: "long",
+        key: "long",
         render: (_, district: SurfaceEditRequest) =>
-          district.height + " x " + district.width,
+          district.state == 1 ? (
+            <Tag color="orange">Chờ phê duyệt</Tag>
+          ) : (
+            <Tag color="green">Đã phê duyệt</Tag>
+          ),
       },
 
       {
-        title: null,
+        title: "Ngày yêu cầu chỉnh sửa",
+        dataIndex: "request_date",
+        key: "request_date",
+        render: (_, district: SurfaceEditRequest) =>
+          moment(district?.request_date).format("DD/MM/YYYY"),
+      },
+      
+      {
+        title: "Phê duyệt",
         dataIndex: null,
         key: "actions",
-        render: (_, space: SurfaceEditRequest) => (
-          <Space>
-            <Tooltip title="Cập nhật">
-              <Button
-                onClick={() => editSurface(space)}
-                size="large"
-                icon={<EditOutlined />}
-                shape="circle"
-              ></Button>
-            </Tooltip>
-            <Tooltip title="Xoá">
-              <Button
-                type="primary"
-                danger
-                size="large"
-                icon={<DeleteOutlined />}
-                shape="circle"
-                onClick={() => deleteSurface(space)}
-              ></Button>
-            </Tooltip>
-            <Tooltip title="Xem chi tiết">
-              <Button
-                type="primary"
-                size="large"
-                icon={<FundViewOutlined />}
-                shape="circle"
-                onClick={() => viewSurface(space)}
-              ></Button>
-            </Tooltip>
-          </Space>
-        ),
+        render: (_, space: SurfaceEditRequest) =>
+          space.state == 1 ? (
+            <Space>
+              <Tooltip title="Phê duyệt">
+                <Button
+                  onClick={() => createSurfaceEditRequest(space)}
+                  size="large"
+                  icon={<CheckOutlined />}
+                  shape="circle"
+                ></Button>
+              </Tooltip>
+            </Space>
+          ) : (
+            ""
+          ),
       },
     ],
     [spaceRequests.length]
@@ -489,7 +499,7 @@ const AdApprovalCRList = () => {
             <Space>
               <Tooltip title="Phê duyệt">
                 <Button
-                  onClick={() => createSpaceEdit(space)}
+                  onClick={() => createSpaceEditRequest(space)}
                   size="large"
                   icon={<CheckOutlined />}
                   shape="circle"
@@ -527,14 +537,14 @@ const AdApprovalCRList = () => {
   };
   return (
     <>
-      <Button
+      {/* <Button
         size="large"
         icon={<PlusOutlined />}
         className="mb-3 mr-3"
         onClick={openNewSurfaceModal}
       >
         YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO
-      </Button>
+      </Button> */}
 
       <Tabs defaultActiveKey="1" items={items} onChange={onChangeTabs} />
 
@@ -545,7 +555,7 @@ const AdApprovalCRList = () => {
         cancelBtnText="Đóng"
         confirmBtnText="Thêm"
         onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createSurface)}
+        onSubmit={handleSubmit(createSurfaceEditRequest)}
       >
         <Form layout="vertical">
           <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>

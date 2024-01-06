@@ -6,11 +6,13 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 import { useAppDispatch } from "@appHook/hooks";
+import AdsDatePicker from "@components/AdsDatePicker";
 import FormControlDropdown from "@components/AdsDropdown";
 import AdsDynamicTable from "@components/AdsDynamicTable";
 import AdsFormModal from "@components/AdsFormModal";
 import AdsInput from "@components/AdsInput";
 import AdsMap from "@components/AdsMap";
+import { AdminRole } from "@enums/admin-role";
 import AlertType from "@enums/alert-type";
 import { AdsLocation } from "@interfaces/ads-location";
 import { AdsSpace } from "@interfaces/ads-space";
@@ -19,6 +21,7 @@ import { AdsType } from "@interfaces/ads-type";
 import DropDownOption from "@interfaces/dropdown-option";
 
 import TableColumn from "@interfaces/table-column";
+import { SurfaceEditRequestService } from "@services/ads-surface-edit-request.service";
 import AlertService from "@services/alert.service";
 import { SpaceService } from "@services/spaces.service";
 import { SurfaceService } from "@services/surfaces.service";
@@ -32,9 +35,11 @@ import {
   Space,
   Tooltip,
   Upload,
+  UploadFile,
   UploadProps,
   message,
 } from "antd";
+import moment from "moment";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -46,7 +51,8 @@ const AdBoards = () => {
   const dispatch = useAppDispatch();
   const [wards, setSpaces] = useState<AdsSpace[]>([]);
   const [lngLat, setLngLat] = useState<AdsLocation>();
-  const [previewImage, setPreviewImage] = useState('');
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [role, setRole] = useState(2);
   const [types, setTypes] = useState<AdsType[]>([]);
   const [formats, setFormats] = useState<AdsType[]>([]);
   const [spaceOptions, setSpaceOptions] = useState<DropDownOption<string>[]>(
@@ -56,6 +62,7 @@ const AdBoards = () => {
   const [formatOptions, setFormatOptions] = useState<DropDownOption<string>[]>(
     []
   );
+
   const {
     reset,
     control,
@@ -65,16 +72,33 @@ const AdBoards = () => {
     formState: { errors },
     watch,
   } = useForm({
-    defaultValues: {
-      long: null,
-      lat: null,
-      width: null,
-      height: null,
-      img_url: null,
-      type: "",
-      space: "",
-      _id: "",
-    },
+    defaultValues:
+      role != 3
+        ? {
+            long: null,
+            lat: null,
+            width: null,
+            height: null,
+            img_url: null,
+            type: "",
+            space: "",
+            _id: "",
+            reason: "",
+            surface: null,
+            request_date: null,
+            file: null,
+          }
+        : {
+            long: null,
+            lat: null,
+            width: null,
+            height: null,
+            img_url: null,
+            file: null,
+            type: "",
+            space: "",
+            _id: "",
+          },
   });
 
   const tableColumns = useMemo(
@@ -125,37 +149,51 @@ const AdBoards = () => {
         title: null,
         dataIndex: null,
         key: "actions",
-        render: (_, space: AdsSurface) => (
-          <Space>
-            <Tooltip title="Cập nhật">
-              <Button
-                onClick={() => editSurface(space)}
-                size="large"
-                icon={<EditOutlined />}
-                shape="circle"
-              ></Button>
-            </Tooltip>
-            <Tooltip title="Xoá">
-              <Button
-                type="primary"
-                danger
-                size="large"
-                icon={<DeleteOutlined />}
-                shape="circle"
-                onClick={() => deleteSurface(space)}
-              ></Button>
-            </Tooltip>
-            <Tooltip title="Xem chi tiết">
-              <Button
-                type="primary"
-                size="large"
-                icon={<FundViewOutlined />}
-                shape="circle"
-                onClick={() => viewSurface(space)}
-              ></Button>
-            </Tooltip>
-          </Space>
-        ),
+        render: (_, space: AdsSurface) => {
+          if (role == AdminRole.DepartmentOfficer)
+            <Space>
+              <Tooltip title="Cập nhật">
+                <Button
+                  onClick={() => editSurface(space)}
+                  size="large"
+                  icon={<EditOutlined />}
+                  shape="circle"
+                ></Button>
+              </Tooltip>
+              <Tooltip title="Xoá">
+                <Button
+                  type="primary"
+                  danger
+                  size="large"
+                  icon={<DeleteOutlined />}
+                  shape="circle"
+                  onClick={() => deleteSurface(space)}
+                ></Button>
+              </Tooltip>
+              <Tooltip title="Xem chi tiết">
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<FundViewOutlined />}
+                  shape="circle"
+                  onClick={() => viewSurface(space)}
+                ></Button>
+              </Tooltip>
+            </Space>;
+          else
+            return (
+              <Space>
+                <Tooltip title="Yêu cầu chỉnh sửa">
+                  <Button
+                    onClick={() => editSurface(space)}
+                    size="large"
+                    icon={<EditOutlined />}
+                    shape="circle"
+                  ></Button>
+                </Tooltip>
+              </Space>
+            );
+        },
       },
     ],
     [space.length]
@@ -171,22 +209,32 @@ const AdBoards = () => {
     setIsOpen(true);
   }, []);
 
-  const createSurface = async (formValue: AdsSurface): Promise<void> => {
+  const createSurface = async (formValue: any): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
 
-      let newSpace;
+      let res;
       formValue.height = Number.parseFloat(formValue.height + "");
       formValue.width = Number.parseFloat(formValue.width + "");
-      console.log(formValue);
-      if (formValue._id) {
-        newSpace = await SurfaceService.update(formValue);
+
+      
+      if (role == AdminRole.DepartmentOfficer) {
+        if (formValue._id) {
+          res = await SurfaceService.update(formValue);
+        } else {
+          res = await SurfaceService.create(formValue);
+        }
       } else {
-        newSpace = await SurfaceService.create(formValue);
+        res = await SurfaceEditRequestService.create(formValue);
       }
+
       clearFormAndCloseModal();
 
-      if (newSpace) setReloadTrigger((prev) => !prev);
+      if (res) {
+        setReloadTrigger((prev) => !prev);
+        const msg = res?.message;
+        AlertService.showMessage(AlertType.Success, msg);
+      }
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
       AlertService.showMessage(AlertType.Error, msg);
@@ -214,7 +262,7 @@ const AdBoards = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const editSurface = async (district: AdsSurface) => {
+  const editSurface = async (district: any) => {
     try {
       setValue("_id", district._id);
 
@@ -226,7 +274,21 @@ const AdBoards = () => {
       setValue("type", district.type._id);
       setValue("space", district.space._id);
 
-      setPreviewImage(district.img_url);
+
+      setValue("surface", district._id);
+      setValue("request_date", district.request_date);
+
+      setValue("img_url", district.img_url);
+      const fileList: UploadFile[] = [
+        {
+          uid: "-1",
+          name: district.img_url,
+          status: "done",
+          url: process.env.PUBLIC_URL + "/" + district.img_url,
+          thumbUrl: process.env.PUBLIC_URL + "/" + district.img_url,
+        },
+      ];
+      setFileList(fileList);
       openNewSurfaceModal();
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
@@ -308,29 +370,37 @@ const AdBoards = () => {
   }, [reloadTrigger]);
 
   //
+
   const props: UploadProps = {
     name: "file",
     onChange(info) {
       console.log(info);
     },
   };
-  
 
   return (
     <>
-      <Button
-        size="large"
-        icon={<PlusOutlined />}
-        className="mb-3"
-        onClick={openNewSurfaceModal}
-      >
-        THÊM BẢNG QUẢNG CÁO
-      </Button>
+      {role == AdminRole.DepartmentOfficer ? (
+        <Button
+          size="large"
+          icon={<PlusOutlined />}
+          className="mb-3"
+          onClick={openNewSurfaceModal}
+        >
+          THÊM BẢNG QUẢNG CÁO
+        </Button>
+      ) : (
+        ""
+      )}
       <AdsDynamicTable dataSrc={space} cols={tableColumns} />
       <AdsFormModal
         width="80vw"
         isOpen={isOpen}
-        title="THÊM BẢNG QUẢNG CÁO"
+        title={
+          role == AdminRole.DepartmentOfficer
+            ? "BẢNG QUẢNG CÁO"
+            : "YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO"
+        }
         cancelBtnText="Đóng"
         confirmBtnText="Thêm"
         onCancel={clearFormAndCloseModal}
@@ -338,16 +408,48 @@ const AdBoards = () => {
       >
         <Form layout="vertical">
           <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>
-            <Col span={4} className="gutter-row">
-              <AdsInput
-                control={control}
-                error={errors._id}
-                name="_id"
-                isDisabled={true}
-                label="ID"
-              />
-            </Col>
-
+            {role == AdminRole.DepartmentOfficer ? (
+              <Col span={4} className="gutter-row">
+                <AdsInput
+                  control={control}
+                  error={errors._id}
+                  name="_id"
+                  isDisabled={true}
+                  label="ID"
+                />
+              </Col>
+            ) : (
+              <>
+                <Col span={20} className="gutter-row">
+                  <AdsInput
+                    control={control}
+                    error={errors.reason}
+                    name="reason"
+                    label="Lý do "
+                    rules={{ required: "Không được để trống" }}
+                  />
+                </Col>
+                <Col span={4} className="gutter-row">
+                  <AdsInput
+                    isDisabled={true}
+                    control={control}
+                    error={errors.surface}
+                    name="surface"
+                    label="Biển quảng cáo"
+                    rules={{ required: "Không được để trống" }}
+                  />
+                </Col>
+                <Col span={4} className="gutter-row">
+                  <AdsDatePicker
+                    control={control}
+                    error={errors.request_date}
+                    name="request_date"
+                    label="Ngày yêu cầu chỉnh sửa"
+                    rules={{ required: "Không được để trống" }}
+                  />
+                </Col>
+              </>
+            )}
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
@@ -417,18 +519,21 @@ const AdBoards = () => {
                 label="Image"
                 name="img_url"
                 // valuePropName="fileList"
-                //getValueFromEvent={normFile}
+                // getValueFromEvent={normFile}
               >
                 <Upload
                   listType="picture"
                   maxCount={1}
+                  fileList={fileList}
                   beforeUpload={() => false} // Prevent default upload behavior
                   onChange={(info) => {
-                    
-                    setValue("img_url", info.file);
+                    setFileList(info.fileList);
+                    setValue("file", info.file);
                   }}
                 >
-                  <Button icon={<UploadOutlined />}>Click to upload</Button>
+                  <Button size="large" icon={<UploadOutlined />}>
+                    Click to upload
+                  </Button>
                 </Upload>
               </Form.Item>
             </Col>

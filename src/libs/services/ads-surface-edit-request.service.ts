@@ -17,7 +17,7 @@ export const SurfaceEditRequestService = {
     return data;
   },
   update: async (payload:SurfaceEditRequest): Promise<SurfaceEditRequest> => {
-    const { data } = await axiosClient.patchForm(`api/surface-edit-requests/${payload._id}`, payload);
+    const { data } = await axiosClient.putForm(`api/surface-edit-requests/${payload._id}`, payload);
     return data;
   },
   remove: async (districtId: string): Promise<void> => {
