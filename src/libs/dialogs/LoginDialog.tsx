@@ -8,26 +8,29 @@ import { sharedActions } from '@slices/shared.slice';
 import { Button, Form, Typography } from 'antd';
 import { useForm } from 'react-hook-form';
 
-const LoginDialog = ({handleClose = (isOpen)=> {}}) => {
+const LoginDialog = ({handleClose = (isOpen, user)=> {},  resetPassword = () => {}}) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({ defaultValues: { email: '', password: '', isRemember: true } });
-  const dispatch = useAppDispatch();
+  
   const login = async (formValue) => {
     try {
       console.log(formValue);
       const res = await AuthService.login(formValue);
       const msg = res?.message;
-
+      AlertService.showMessage(AlertType.Success, msg);
       localStorage.setItem('access_token', res.access_token);
       localStorage.setItem('username', res.responseData.username);
       localStorage.setItem('email', res.responseData?.email);
       localStorage.setItem('role', res.responseData?.role);
-      dispatch(sharedActions.setCurrentUser(res.responseData));
-      handleClose(false)
-      AlertService.showMessage(AlertType.Success, msg);
+      localStorage.setItem('name', res.responseData?.name);
+
+      
+
+      handleClose(false, res.responseData);
+      
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
       AlertService.showMessage(AlertType.Error, msg);
@@ -66,7 +69,7 @@ const LoginDialog = ({handleClose = (isOpen)=> {}}) => {
             control={control}
             error={errors.isRemember}
           />
-          <Typography.Paragraph className='text-blue-500 cursor-pointer hover:opacity-75 transition-opacity'>
+          <Typography.Paragraph onClick={resetPassword} className='text-blue-500 cursor-pointer hover:opacity-75 transition-opacity' >
             Quên mật khẩu?
           </Typography.Paragraph>
         </div>

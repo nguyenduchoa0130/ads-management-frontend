@@ -1,46 +1,52 @@
-import AdsInput from "@components/AdsInput";
-import AlertType from "@enums/alert-type";
-import AlertService from "@services/alert.service";
-import { AuthService } from "@services/auth.service";
-import { Button, Form } from "antd";
-import { useForm } from "react-hook-form";
+import AdsInput from '@components/AdsInput';
+import AlertType from '@enums/alert-type';
+import AlertService from '@services/alert.service';
+import { AuthService } from '@services/auth.service';
+import { Button, Form } from 'antd';
+import { useForm } from 'react-hook-form';
 
-const RegisterDialog = ({ handleOpenDialog }) => {
+const ResetPassword =  ({handleClose = (isOpen, user)=> {}}) => {
   const {
     watch,
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    defaultValues: { username: "", password: "", passwordConfirm: "" },
-  });
+  } = useForm({ defaultValues: { username: '', password: '', passwordConfirm: '' } });
 
   const register = async (formValue) => {
-    const res = await AuthService.verifyUsername(formValue);
+    const res = await AuthService.resetPassword(formValue);
+    handleClose(false, formValue);
     const msg = res?.message;
     AlertService.showMessage(AlertType.Success, msg);
-    handleOpenDialog(formValue);
   };
 
   return (
     <>
-      <Form
-        layout="vertical"
-        className="pt-3"
-        onFinish={handleSubmit(register)}
-      >
+      <Form layout='vertical' className='pt-3' onFinish={handleSubmit(register)}>
         <AdsInput
-          name="username"
-          label="Username"
+          name='username'
+          label='Username'
           control={control}
           error={errors.username}
-          placeholder="Nhập username"
+          placeholder='Nhập username'
           rules={{
-            required: "Vui lòng nhập email",
+            required: 'Vui lòng nhập email',
             // pattern: { value: /^\S+@\S+$/i, message: 'Email không hợp lệ' },
           }}
         />
-        {/* <AdsInput
+         <AdsInput
+         
+          name='otp'
+          label='Mã OTP'
+          control={control}
+          error={errors.password}
+          placeholder='Nhập mã OTP'
+          rules={{
+            required: 'Vui lòng nhập OTP',
+            minLength: { value: 4, message: 'OTP phải có 4 kí tự' },
+          }}
+        />
+        <AdsInput
           isPassword
           name='password'
           label='Mật khẩu'
@@ -66,18 +72,13 @@ const RegisterDialog = ({ handleOpenDialog }) => {
               }
             },
           }}
-        /> */}
-        <Button
-          type="primary"
-          size="large"
-          className="w-full"
-          htmlType="submit"
-        >
-          Xác nhận
+        />
+        <Button type='primary' size='large' className='w-full' htmlType='submit'>
+          Thay đổi mật khẩu
         </Button>
       </Form>
     </>
   );
 };
 
-export default RegisterDialog;
+export default ResetPassword;
