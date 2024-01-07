@@ -19,7 +19,7 @@ export const SpaceContractService = {
     return data;
   },
   update: async (payload:SpaceContract): Promise<SpaceContract> => {
-    const { data } = await axiosClient.patchForm(`api/space-contracts/${payload._id}`, payload);
+    const { data } = await axiosClient.putForm(`api/space-contracts/${payload._id}`, payload);
     return data;
   },
   remove: async (districtId: string): Promise<void> => {
@@ -40,10 +40,11 @@ export const SurfaceContractService = {
     return data;
   },
   update: async (payload:SurfaceContract): Promise<SurfaceContract> => {
-    const { data } = await axiosClient.patchForm(`api/surface-contracts/${payload._id}`, payload);
+    const { data } = await axiosClient.putForm(`api/surface-contracts/${payload._id}`, payload);
     return data;
   },
-  remove: async (districtId: string): Promise<void> => {
-    await axiosClient.delete(`api/surface-contracts/${districtId}`);
+  remove: async (districtId: string): Promise<any> => {
+    const {data }  = await axiosClient.delete(`api/surface-contracts/${districtId}`);
+    return data;
   },
 };

@@ -6,10 +6,13 @@ export interface SurfaceContract {
   _id: string;
   surface: AdsSurface;
   content: string;
-  company: Company;
+  company: string;
   start_date: string;
   end_date: string;
   createdAt: string;
   updatedAt: string;
+  state: number,
+  email: string,
+  phone: string,
   __v: number;
 }

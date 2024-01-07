@@ -26,6 +26,7 @@ const LoginDialog = ({handleClose = (isOpen, user)=> {},  resetPassword = () => 
       localStorage.setItem('email', res.responseData?.email);
       localStorage.setItem('role', res.responseData?.role);
       localStorage.setItem('name', res.responseData?.name);
+      localStorage.setItem('_id', res.responseData?._id);
 
       
 

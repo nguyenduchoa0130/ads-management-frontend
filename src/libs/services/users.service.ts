@@ -8,7 +8,10 @@ export const UserService = {
     const { data } = await axiosClient.get('api/users');
     return data.responseData;
   },
-
+  get: async (payload: any): Promise<{message: string, responseData:User}> => {
+    const { data } = await axiosClient.get(`api/users/${payload._id}`, payload);
+    return data;
+  },
   create: async (payload: User): Promise<any> => {
     delete payload['_id'];
     const { data } = await axiosClient.post('api/users', payload);

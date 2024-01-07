@@ -11,5 +11,8 @@ export interface SpaceContract {
   end_date: string;
   createdAt: string;
   updatedAt: string;
+  state: number,
+  email: string,
+  phone: string,
   __v: number;
 }

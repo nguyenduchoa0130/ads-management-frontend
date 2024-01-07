@@ -12,13 +12,14 @@ import AdsMap from "@components/AdsMap";
 import LoginDialog from "@dialogs/LoginDialog";
 import RegisterDialog from "@dialogs/Register";
 import ResetPassword from "@dialogs/ResetPassword";
+import { AdminRole } from "@enums/admin-role";
 import AlertType from "@enums/alert-type";
 import { selectCurrentUser } from "@selectors/shared.selectors";
 import AlertService from "@services/alert.service";
 
 import { sharedActions } from "@slices/shared.slice";
 import { Button, Drawer, Menu, Tooltip, Typography } from "antd";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -31,15 +32,13 @@ const Home = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
-  const currentUser = {
+  const user = {
     username: localStorage.getItem("username"),
     name: localStorage.getItem("name"),
     role: localStorage.getItem("role"),
     token: localStorage.getItem("access_token"),
   };
-
-  const [user, setUser] = useState(currentUser);
+  const [adminPage, setAdminPage] = useState("");
 
   const openMenu = useCallback(() => {
     setIsOpen(true);
@@ -91,68 +90,87 @@ const Home = () => {
       AlertService.showMessage(AlertType.Success, "ĐĂNG XUẤT THÀNH CÔNG");
     navigate("/");
   };
-
-  const [menuItems, setMenuItems] = useState(() => {
-    let nav = [];
-    if (currentUser.username) {
-      nav = [
-        {
-          action: "navigate",
-          path: "/thong-tin-ca-nhan",
-          isLoggedIn: true,
-          icon: <UserOutlined />,
-          label: "Thông tin tài khoản",
-        },
-        // {
-        //   action: 'openDialog',
-        //   dialogName: 'register',
-        //   isLoggedIn: false,
-        //   icon: <PlusCircleOutlined />,
-        //   label: 'Đăng ký tài khoản',
-        // },
-
-        {
-          isLoggedIn: true,
-          action: "function",
-          icon: <LogoutOutlined />,
-          label: "Đăng xuất",
-        },
-      ];
-    } else {
-      nav = [
-        {
-          action: "openDialog",
-          dialogName: "login",
-          isLoggedIn: false,
-          icon: <LoginOutlined />,
-          label: "Đăng nhập",
-        },
-        // {
-        //   action: "navigate",
-        //   path: "/thong-tin-ca-nhan",
-        //   isLoggedIn: true,
-        //   icon: <UserOutlined />,
-        //   label: "Thông tin tài khoản",
-        // },
-        // {
-        //   action: 'openDialog',
-        //   dialogName: 'register',
-        //   isLoggedIn: false,
-        //   icon: <PlusCircleOutlined />,
-        //   label: 'Đăng ký tài khoản',
-        // },
-
-        {
-          isLoggedIn: true,
-          action: "function",
-          icon: <LogoutOutlined />,
-          label: "Đăng xuất",
-        },
-      ];
+  const [menuItems, setMenuItems] = useState([]);
+  useEffect(() => {
+    
+    switch (Number.parseInt(user.role)) {
+      case AdminRole.WardOfficer: {
+        setAdminPage("/can-bo-phuong/thong-tin-ca-nhan");
+        break;
+      }
+      case AdminRole.DistrictOfficer: {
+        setAdminPage("/can-bo-quan/thong-tin-ca-nhan");
+        break;
+      }
+      case AdminRole.DepartmentOfficer: {
+        setAdminPage("/can-bo-so-vh-tt/thong-tin-ca-nhan");
+        break;
+      }
     }
-
-    return nav;
+    let nav = () => {
+      let nav = [];
+      if (user.username) {
+        nav = [
+          {
+            action: "navigate",
+            path: adminPage,
+            isLoggedIn: true,
+            icon: <UserOutlined />,
+            label: "Thông tin cá nhân",
+          },
+          // {
+          //   action: 'openDialog',
+          //   dialogName: 'register',
+          //   isLoggedIn: false,
+          //   icon: <PlusCircleOutlined />,
+          //   label: 'Đăng ký tài khoản',
+          // },
+  
+          {
+            isLoggedIn: true,
+            action: "function",
+            icon: <LogoutOutlined />,
+            label: "Đăng xuất",
+          },
+        ];
+      } else {
+        nav = [
+          {
+            action: "openDialog",
+            dialogName: "login",
+            isLoggedIn: false,
+            icon: <LoginOutlined />,
+            label: "Đăng nhập",
+          },
+          // {
+          //   action: "navigate",
+          //   path: "/thong-tin-ca-nhan",
+          //   isLoggedIn: true,
+          //   icon: <UserOutlined />,
+          //   label: "Thông tin tài khoản",
+          // },
+          // {
+          //   action: 'openDialog',
+          //   dialogName: 'register',
+          //   isLoggedIn: false,
+          //   icon: <PlusCircleOutlined />,
+          //   label: 'Đăng ký tài khoản',
+          // },
+  
+          {
+            isLoggedIn: true,
+            action: "function",
+            icon: <LogoutOutlined />,
+            label: "Đăng xuất",
+          },
+        ];
+      }
+  
+      return nav;
+    }
+    setMenuItems(nav);
   });
+  
 
   return (
     <>
@@ -242,7 +260,7 @@ const Home = () => {
                   dialogTitle: null,
                   dialogName: null,
                 });
-                setUser(user);
+                
 
                 setMenuItems([
                   {
@@ -261,19 +279,23 @@ const Home = () => {
                   },
                 ]);
               }}
-              resetPassword = {() => {
-                openActionDialog('register')
+              resetPassword={() => {
+                openActionDialog("register");
               }}
-              
             />
           )}
-          {dialogDetail.dialogName === "register" && <RegisterDialog handleOpenDialog={(user) => (
-                openActionDialog('reset-password')
-          )} />}
-          {dialogDetail.dialogName === "reset-password" && <ResetPassword handleClose={(isOpen) => {
-                openActionDialog('login')
-
-          }} />}
+          {dialogDetail.dialogName === "register" && (
+            <RegisterDialog
+              handleOpenDialog={(user) => openActionDialog("reset-password")}
+            />
+          )}
+          {dialogDetail.dialogName === "reset-password" && (
+            <ResetPassword
+              handleClose={(isOpen) => {
+                openActionDialog("login");
+              }}
+            />
+          )}
         </>
       </AdsFormModal>
     </>

@@ -1,5 +1,9 @@
 import {
   CheckOutlined,
+  DeleteColumnOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import { useAppDispatch } from "@appHook/hooks";
@@ -9,11 +13,14 @@ import AdsDynamicTable from "@components/AdsDynamicTable";
 import AdsFormModal from "@components/AdsFormModal";
 import AdsInput from "@components/AdsInput";
 import AdsMap from "@components/AdsMap";
+import { AdminRole } from "@enums/admin-role";
 import AlertType from "@enums/alert-type";
 import { AdsLocation } from "@interfaces/ads-location";
 import { AdsSpace } from "@interfaces/ads-space";
+import { SpaceContract } from "@interfaces/ads-space-contract";
 import { SpaceEditRequest } from "@interfaces/ads-space-edit-requests";
 import { AdsSurface } from "@interfaces/ads-surface";
+import { SurfaceContract } from "@interfaces/ads-surface-contract";
 import { SurfaceEditRequest } from "@interfaces/ads-surface-edit-request";
 import { AdsType } from "@interfaces/ads-type";
 import DropDownOption from "@interfaces/dropdown-option";
@@ -22,6 +29,10 @@ import TableColumn from "@interfaces/table-column";
 import { SpaceEditRequestService } from "@services/ads-space-edit-requests.service";
 import { SurfaceEditRequestService } from "@services/ads-surface-edit-request.service";
 import AlertService from "@services/alert.service";
+import {
+  SpaceContractService,
+  SurfaceContractService,
+} from "@services/contracts.service";
 import { SpaceService } from "@services/spaces.service";
 import { SurfaceService } from "@services/surfaces.service";
 import { SurfaceTypeService } from "@services/types.service";
@@ -52,9 +63,9 @@ const AdPermitApprovalList = () => {
   const [center, setCenter] = useState<AdsLocation>(null);
   const [isOpenSurface, setIsOpenSurface] = useState<boolean>(false);
 
-  const [spaceRequests, setSpaceRequests] = useState<SpaceEditRequest[]>([]);
+  const [spaceContracts, setSpaceContracts] = useState<SpaceContract[]>([]);
   const [surfaceEditRequests, setSurfaceEditRequests] = useState<
-    SurfaceEditRequest[]
+    SurfaceContract[]
   >([]);
   const dispatch = useAppDispatch();
   const [wards, setSpaces] = useState<AdsSpace[]>([]);
@@ -79,48 +90,22 @@ const AdPermitApprovalList = () => {
     formState: { errors },
     watch,
   } = useForm({
-    defaultValues: {
-      long: null,
-      lat: null,
-      width: null,
-      height: null,
-      img_url: null,
-      type: "",
-      space: "",
-      address: "",
-      format: "",
-      ward: "",
-      _id: "",
-      reason: "",
-      surface: "",
-      request_date: null,
-    },
+    defaultValues: {},
   });
 
-  const getLongLat = (lngLat: AdsLocation) => {
-    setValue("long", lngLat.lng);
-    setValue("lat", lngLat.lat);
-    setLngLat(lngLat);
-  };
+  const [role, setRole] = useState(1);
+
   const viewSurface = function (data) {};
 
-  const createSpaceEditRequest = async (formValue: any): Promise<void> => {
+  const createSpaceContract = async (formValue: any): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
       let res;
 
       formValue.state = 2;
-      formValue.ward = formValue.ward?._id;
-      formValue.type = formValue.type?._id;
-      formValue.format = formValue.format?._id;
-      formValue.space = formValue.space?._id;
-
+      formValue.space = formValue?.space?._id;
       if (formValue._id) {
-        res = await SpaceEditRequestService.update(formValue);
-        if (res) {
-          formValue._id = formValue.space;
-          res = await SpaceService.update(formValue);
-        }
+        res = await SpaceContractService.update(formValue);
       }
 
       clearFormAndCloseModal();
@@ -134,27 +119,18 @@ const AdPermitApprovalList = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const createSurfaceEditRequest = async (
-    formValue: any
-  ): Promise<void> => {
+  const createSurfaceContract = async (formValue: any): Promise<void> => {
     try {
       dispatch(sharedActions.showLoading());
 
       let res;
-      formValue.space = formValue.space?._id;
+
       formValue.surface = formValue.surface?._id;
-      formValue.type = formValue.type?._id;
       formValue.state = 2;
       if (formValue._id) {
-        res = await SurfaceEditRequestService.update(formValue);
-        if (res) {
-          console.log(formValue);
-          formValue._id = formValue.surface;
-          formValue.img_url = formValue.img_url ? formValue.img_url : null;
-          res = await SurfaceService.update(formValue);
-        }
-      } 
-     
+        res = await SurfaceContractService.update(formValue);
+      }
+
       clearFormAndCloseModal();
       const msg = res?.message;
       AlertService.showMessage(AlertType.Success, msg);
@@ -167,16 +143,18 @@ const AdPermitApprovalList = () => {
     }
   };
 
-  const deleteSurface = async (district: SurfaceEditRequest) => {
+  const deleteSurface = async (surface: SurfaceContract) => {
     try {
-      const msg = `Bạn có chắc chắn là muốn xoá vị trí ${district.long}, ${district.lat} không?`;
+      const msg = `Bạn có chắc chắn là muốn xoá  không?`;
       const { isConfirmed } = await AlertService.showMessage(
         AlertType.Question,
         msg
       );
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
-        await SurfaceEditRequestService.remove(district._id);
+        const res = await SurfaceContractService.remove(surface._id);
+        const msg = res?.message;
+        AlertService.showMessage(AlertType.Success, msg);
         setReloadTrigger((prev) => !prev);
       }
     } catch (error) {
@@ -196,7 +174,7 @@ const AdPermitApprovalList = () => {
       );
       if (isConfirmed) {
         dispatch(sharedActions.showLoading());
-        await SpaceEditRequestService.remove(district._id);
+        await SpaceContractService.remove(district._id);
         setReloadTrigger((prev) => !prev);
       }
     } catch (error) {
@@ -206,19 +184,9 @@ const AdPermitApprovalList = () => {
       dispatch(sharedActions.hideLoading());
     }
   };
-  const editSurface = async (district: SurfaceEditRequest) => {
+  const editSurface = async (district: SurfaceContract) => {
     try {
-      setValue("_id", district._id);
-
-      setValue("long", district.long);
-      setValue("lat", district.lat);
-
-      setValue("width", district.width);
-      setValue("height", district.height);
-      setValue("type", district.type._id);
-      setValue("space", district.space._id);
-
-      setPreviewImage(district.img_url);
+      
       openNewSurfaceModal();
     } catch (error) {
       const msg = error?.response?.data?.message || error.message;
@@ -270,16 +238,16 @@ const AdPermitApprovalList = () => {
     const getSpaceRequests = async () => {
       try {
         dispatch(sharedActions.showLoading());
-        const spaces = await SpaceEditRequestService.getAll();
+        const spaces = await SpaceContractService.getAll();
 
-        let options: DropDownOption<string>[] = spaces.map((el) => {
-          return {
-            label: el.address,
-            value: el._id,
-          };
-        });
+        // let options: DropDownOption<string>[] = spaces.map((el) => {
+        //   return {
+        //     label: el.address,
+        //     value: el._id,
+        //   };
+        // });
 
-        setSpaceRequests(spaces);
+        setSpaceContracts(spaces);
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
         AlertService.showMessage(AlertType.Error, msg);
@@ -288,17 +256,17 @@ const AdPermitApprovalList = () => {
       }
     };
 
-    const getSurfaceRequests = async () => {
+    const getSurfaceContracts = async () => {
       try {
         dispatch(sharedActions.showLoading());
-        const spaces = await SurfaceEditRequestService.getAll();
+        const spaces = await SurfaceContractService.getAll();
 
-        let options: DropDownOption<string>[] = spaces.map((el) => {
-          return {
-            label: el.long + "," + el.lat,
-            value: el._id,
-          };
-        });
+        // let options: DropDownOption<string>[] = spaces.map((el) => {
+        //   return {
+        //     label: el.long + "," + el.lat,
+        //     value: el._id,
+        //   };
+        // });
 
         setSurfaceEditRequests(spaces);
       } catch (error) {
@@ -352,7 +320,7 @@ const AdPermitApprovalList = () => {
     getWards();
     getTypes();
     getSpaceRequests();
-    getSurfaceRequests();
+    getSurfaceContracts();
   }, [reloadTrigger]);
 
   //
@@ -362,85 +330,7 @@ const AdPermitApprovalList = () => {
       console.log(info);
     },
   };
-  const tableColumnsSurface = useMemo(
-    (): TableColumn[] => [
-      {
-        title: "#",
-        dataIndex: "_id",
-        key: "_id",
-        render: (value: string) => value.slice(0, 8),
-      },
-      {
-        title: "Image",
-        dataIndex: "long",
-        key: "long",
-        render: (_, district: AdsSurface) => (
-          <img
-            width="130"
-            height="60"
-            src={
-              process.env.REACT_APP_BACKEND_BASE_URL + "/" + district.img_url
-            }
-          />
-        ),
-      },
-      {
-        title: "Lý do",
-        dataIndex: "reason",
-        key: "reason",
-      
-      },
-      {
-        title: "Vị trí",
-        dataIndex: "long",
-        key: "long",
-        render: (_, district: SurfaceEditRequest) =>
-          district.long + " -- " + district.lat,
-      },
-      {
-        title: "Trạng thái",
-        dataIndex: "long",
-        key: "long",
-        render: (_, district: SurfaceEditRequest) =>
-          district.state == 1 ? (
-            <Tag color="orange">Chờ phê duyệt</Tag>
-          ) : (
-            <Tag color="green">Đã phê duyệt</Tag>
-          ),
-      },
-
-      {
-        title: "Ngày yêu cầu chỉnh sửa",
-        dataIndex: "request_date",
-        key: "request_date",
-        render: (_, district: SurfaceEditRequest) =>
-          moment(district?.request_date).format("DD/MM/YYYY"),
-      },
-      
-      {
-        title: "Phê duyệt",
-        dataIndex: null,
-        key: "actions",
-        render: (_, space: SurfaceEditRequest) =>
-          space.state == 1 ? (
-            <Space>
-              <Tooltip title="Phê duyệt">
-                <Button
-                  onClick={() => createSurfaceEditRequest(space)}
-                  size="large"
-                  icon={<CheckOutlined />}
-                  shape="circle"
-                ></Button>
-              </Tooltip>
-            </Space>
-          ) : (
-            ""
-          ),
-      },
-    ],
-    [spaceRequests.length]
-  );
-
+  
   const tableColumnsSpace = useMemo(
     (): TableColumn[] => [
       {
@@ -450,22 +340,22 @@ const AdPermitApprovalList = () => {
         render: (value: string) => value.slice(0, 8),
       },
       {
-        title: "Lý do",
-        dataIndex: "reason",
-        key: "reason",
+        title: "Công ty",
+        dataIndex: "company",
+        key: "company",
       },
       {
         title: "Vị trí",
         dataIndex: "long",
         key: "long",
-        render: (_, district: SpaceEditRequest) =>
-          district.long + " -- " + district.lat,
+        render: (_, district: SpaceContract) =>
+          district?.space?.long + " -- " + district?.space?.lat,
       },
       {
         title: "Trạng thái",
         dataIndex: "long",
         key: "long",
-        render: (_, district: SpaceEditRequest) =>
+        render: (_, district: SpaceContract) =>
           district.state == 1 ? (
             <Tag color="orange">Chờ phê duyệt</Tag>
           ) : (
@@ -473,32 +363,35 @@ const AdPermitApprovalList = () => {
           ),
       },
       {
-        title: "Ngày yêu cầu chỉnh sửa",
-        dataIndex: "request_date",
-        key: "request_date",
-        render: (_, district: SpaceEditRequest) =>
-          moment(district?.request_date).format("DD/MM/YYYY"),
+        title: "Địa chỉ",
+        dataIndex: "address",
+        key: "address",
+        render: (_, district: SpaceContract) => district?.space?.address,
       },
 
-      {
-        title: "Phường",
-        dataIndex: "type",
-        key: "type",
-        render: (_, district: SpaceEditRequest) => district?.ward?.name,
-      },
       {
         title: "Phê duyệt",
         dataIndex: null,
         key: "actions",
-        render: (_, space: SpaceEditRequest) =>
+        render: (_, space: SpaceContract) =>
           space.state == 1 ? (
             <Space>
-              <Tooltip title="Phê duyệt">
+              <Tooltip title="Phê duyệt điểm đặt bảng quảng cáo">
                 <Button
-                  onClick={() => createSpaceEditRequest(space)}
+                  onClick={() => createSpaceContract(space)}
                   size="large"
                   icon={<CheckOutlined />}
                   shape="circle"
+                ></Button>
+              </Tooltip>
+              <Tooltip title="Xoá">
+                <Button
+                  type="primary"
+                  danger
+                  size="large"
+                  icon={<DeleteOutlined />}
+                  shape="circle"
+                  onClick={() => deleteSpace(space)}
                 ></Button>
               </Tooltip>
             </Space>
@@ -507,21 +400,115 @@ const AdPermitApprovalList = () => {
           ),
       },
     ],
-    [surfaceEditRequests.length]
+    [spaceContracts.length]
   );
+  const tableColumnsSurface = useMemo(
+    (): TableColumn[] => [
+      {
+        title: "#",
+        dataIndex: "_id",
+        key: "_id",
+        render: (value: string) => value.slice(0, 8),
+      },
+
+      {
+        title: "Công ty",
+        dataIndex: "company",
+        key: "company",
+      },
+      {
+        title: "Nội dung",
+        dataIndex: "content",
+        key: "content",
+      },
+      {
+        title: "Vị trí xin cấp phép",
+        dataIndex: "long",
+        key: "long",
+        render: (_, district: SurfaceContract) =>
+          district?.surface?.long + " -- " + district?.surface?.lat,
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "long",
+        key: "long",
+        render: (_, district: SurfaceContract) =>
+          district.state == 1 ? (
+            <Tag color="orange">Chờ phê duyệt</Tag>
+          ) : (
+            <Tag color="green">Đã phê duyệt</Tag>
+          ),
+      },
+      {
+        title: "Cấp phép",
+        dataIndex: null,
+        key: "actions",
+        render: (_, space: SurfaceContract) => {
+          if (space.state == 1) {
+            if (role == AdminRole.DepartmentOfficer) {
+              return(<Space>
+                <Tooltip title="Phê duyệt bảng quảng cáo">
+                  <Button
+                    onClick={() => createSurfaceContract(space)}
+                    size="large"
+                    icon={<CheckOutlined />}
+                    shape="circle"
+                  ></Button>
+                </Tooltip>
+                <Tooltip title="Xoá">
+                  <Button
+                    type="primary"
+                    danger
+                    size="large"
+                    icon={<DeleteOutlined />}
+                    shape="circle"
+                    onClick={() => deleteSurface(space)}
+                  ></Button>
+                </Tooltip>
+              </Space>);
+            } else {
+              return (<Space>
+                <Tooltip title="Cập nhật bảng quảng cáo">
+                  <Button
+                    onClick={() => editSurface(space)}
+                    size="large"
+                    icon={<EditOutlined />}
+                    shape="circle"
+                  ></Button>
+                </Tooltip>
+                <Tooltip title="Xoá">
+                  <Button
+                    type="primary"
+                    danger
+                    size="large"
+                    icon={<DeleteOutlined />}
+                    shape="circle"
+                    onClick={() => deleteSurface(space)}
+                  ></Button>
+                </Tooltip>
+              </Space>)
+            };
+          }
+        },
+      },
+    ],
+    [spaceContracts.length]
+  );
+
   const items: TabsProps["items"] = [
     {
       key: "1",
-      label: "Yêu cầu chỉnh sửa vị trí",
+      label: "Cấp phép điểm đặt bảng quảng cáo",
       children: (
-        <AdsDynamicTable dataSrc={spaceRequests} cols={tableColumnsSpace} />
+        <AdsDynamicTable dataSrc={spaceContracts} cols={tableColumnsSpace} searchByFields={['company']} hasFilter={true} />
       ),
     },
     {
       key: "2",
-      label: "Yêu cầu chỉnh sửa biển quảng cáo",
+      label: "Cấp phép bảng quảng cáo",
       children: (
         <AdsDynamicTable
+        searchByFields={['company']} hasFilter={true}
           dataSrc={surfaceEditRequests}
           cols={tableColumnsSurface}
         />
@@ -533,28 +520,35 @@ const AdPermitApprovalList = () => {
   };
   return (
     <>
-      {/* <Button
+      <Button
         size="large"
         icon={<PlusOutlined />}
         className="mb-3 mr-3"
         onClick={openNewSurfaceModal}
       >
-        YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO
-      </Button> */}
-
+        TẠO CẤP PHÉP ĐIỂM ĐẶT BẢNG QC
+      </Button>
+      <Button
+        size="large"
+        icon={<PlusOutlined />}
+        className="mb-3 mr-3"
+        onClick={openNewSurfaceModal}
+      >
+        TẠO CẤP PHÉP BẢNG QC
+      </Button>
       <Tabs defaultActiveKey="1" items={items} onChange={onChangeTabs} />
 
       <AdsFormModal
         width="80vw"
         isOpen={isOpenSurface}
-        title="YÊU CẦU CHỈNH SỬA BẢNG QUẢNG CÁO"
+        title="CẤP PHÉP BẢNG QUẢNG CÁO"
         cancelBtnText="Đóng"
         confirmBtnText="Thêm"
         onCancel={clearFormAndCloseModal}
-        onSubmit={handleSubmit(createSurfaceEditRequest)}
+        onSubmit={handleSubmit(createSurfaceContract)}
       >
         <Form layout="vertical">
-          <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>
+          {/* <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }}>
             <Col span={4} className="gutter-row">
               <AdsInput
                 control={control}
@@ -689,7 +683,7 @@ const AdPermitApprovalList = () => {
           </Row>
           <div className="pt-1 pb-2 h-[600px]">
             <AdsMap onClickOnMap={getLongLat} lngLat={lngLat} />
-          </div>
+          </div> */}
         </Form>
       </AdsFormModal>
     </>
