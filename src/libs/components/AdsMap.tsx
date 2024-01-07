@@ -1,22 +1,22 @@
-import { AimOutlined, SearchOutlined } from "@ant-design/icons";
-import AlertType from "@enums/alert-type";
-import { AdsLocation } from "@interfaces/ads-location";
-import {
-  Autocomplete,
-  GoogleMap,
-  Marker,
-  Polygon,
-  useJsApiLoader,
-} from "@react-google-maps/api";
-import AlertService from "@services/alert.service";
-import extractBoundariesUtil from "@utils/extract-boundaries.util";
-import { Button, Input, Tooltip } from "antd";
-import { FC, useCallback, useEffect, useRef, useState } from "react";
-import { OutputFormat, fromLatLng, setDefaults } from "react-geocode";
+import { AimOutlined, SearchOutlined } from '@ant-design/icons';
+import { useAppDispatch } from '@appHook/hooks';
+import AlertType from '@enums/alert-type';
+import { AdsLocation } from '@interfaces/ads-location';
+import { AdsSpace } from '@interfaces/ads-space';
+import { Autocomplete, GoogleMap, Marker, Polygon, useJsApiLoader } from '@react-google-maps/api';
+import { selectIsLoading } from '@selectors/shared.selectors';
+import AlertService from '@services/alert.service';
+import { SpaceService } from '@services/spaces.service';
+import { sharedActions } from '@slices/shared.slice';
+import extractBoundariesUtil from '@utils/extract-boundaries.util';
+import { Button, Input, Tooltip } from 'antd';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { OutputFormat, fromLatLng, setDefaults } from 'react-geocode';
+import { useSelector } from 'react-redux';
 
 setDefaults({
   key: process.env.REACT_APP_GOOGLE_MAP_ACCESS_KEY,
-  language: "vi",
+  language: 'vi',
   outputFormat: OutputFormat.JSON,
 });
 interface AdsMapProps {
@@ -39,14 +39,17 @@ const AdsMap: FC<AdsMapProps> = ({
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState<AdsLocation>(null);
   const [defaultCenter, setDefaultCenter] = useState<AdsLocation>(null);
-  const [address, setAddress] = useState<string>("");
+  const [address, setAddress] = useState<string>('');
   const [bounds, setBounds] = useState<AdsLocation[]>([]);
+  const [spaces, setSpaces] = useState<AdsSpace[]>([]);
+
+  const dispatch = useAppDispatch();
   const autocompleteRef = useRef(null);
   const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
+    id: 'google-map-script',
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAP_ACCESS_KEY,
-    language: "vi",
-    libraries: ["geocoding", "marker", "geometry", "drawing", "places"],
+    language: 'vi',
+    libraries: ['geocoding', 'marker', 'geometry', 'drawing', 'places'],
   });
 
   const getCurrentLocation = () => {
@@ -59,15 +62,28 @@ const AdsMap: FC<AdsMapProps> = ({
         },
         (err) => {
           AlertService.showMessage(AlertType.Error, err.message);
-        }
+        },
       );
     } else {
-      const errorMessage = "Trình duyệt của bạn không hỗ trợ định vị địa lý";
+      const errorMessage = 'Trình duyệt của bạn không hỗ trợ định vị địa lý';
       AlertService.showMessage(AlertType.Error, errorMessage);
     }
   };
 
+  const getSpaces = async () => {
+    try {
+      dispatch(sharedActions.showLoading());
+      const data = await SpaceService.getAll();
+      setSpaces((prev) => [...prev, ...data]);
+    } catch (error) {
+      AlertService.showMessage(AlertType.Error, error.message);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+
   const handleOnLoadMap = useCallback((map) => {
+    getSpaces();
     setMap(map);
     getCurrentLocation();
   }, []);
@@ -75,8 +91,6 @@ const AdsMap: FC<AdsMapProps> = ({
   const handleOnDestroyMap = useCallback((map) => {
     setMap(null);
   }, []);
-
-  
 
   const handlePlaceSelect = (place) => {
     setAddress(place.formatted_address);
@@ -92,7 +106,7 @@ const AdsMap: FC<AdsMapProps> = ({
           setBounds(extractBoundariesUtil(placeDetails.geometry.viewport));
           onSearchAddress({ lat: location.lat(), lng: location.lng() });
         }
-      }
+      },
     );
   };
 
@@ -100,7 +114,7 @@ const AdsMap: FC<AdsMapProps> = ({
     const lat = locationInfo.latLng.lat();
     const lng = locationInfo.latLng.lng();
     const { results, status } = await fromLatLng(lat, lng);
-    if (status === "OK") {
+    if (status === 'OK') {
       const [placeDetails] = results;
       const location = placeDetails.geometry.location;
 
@@ -110,50 +124,42 @@ const AdsMap: FC<AdsMapProps> = ({
         addressDetail: results,
       });
     } else {
-      AlertService.showMessage(
-        AlertType.Error,
-        "Có lỗi trong quá trình tìm kiếm địa chỉ"
-      );
+      AlertService.showMessage(AlertType.Error, 'Có lỗi trong quá trình tìm kiếm địa chỉ');
     }
   };
 
   return (
     <>
-      <div className="h-full w-full relative">
+      <div className='h-full w-full relative'>
         {isLoaded ? (
           <>
             {isEnableSearch && (
-              <div
-                className={`absolute top-2 z-10 ${
-                  isHomePage ? "left-16" : "left-4"
-                }`}
-              >
+              <div className={`absolute top-2 z-10 ${isHomePage ? 'left-16' : 'left-4'}`}>
                 <Autocomplete
                   onLoad={(autocomplete) => {
                     autocompleteRef.current = autocomplete;
-                    autocomplete.setFields(["place_id", "formatted_address"]);
+                    autocomplete.setFields(['place_id', 'formatted_address']);
                   }}
                   onPlaceChanged={() => {
                     const selectedPlace = autocompleteRef.current.getPlace();
                     handlePlaceSelect(selectedPlace);
-                  }}
-                >
-                  <div className="relative flex items-center justify-start gap-2 w-[500px]">
-                    <span className="absolute left-4 z-10">
+                  }}>
+                  <div className='relative flex items-center justify-start gap-2 w-[500px]'>
+                    <span className='absolute left-4 z-10'>
                       <SearchOutlined />
                     </span>
                     <Input
-                      size="large"
-                      placeholder="Tìm kiếm địa chỉ"
+                      size='large'
+                      placeholder='Tìm kiếm địa chỉ'
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="pl-10"
+                      className='pl-10'
                     />
-                    <Tooltip title="Vị trí hiện tại">
+                    <Tooltip title='Vị trí hiện tại'>
                       <Button
-                        size="large"
+                        size='large'
                         icon={<AimOutlined />}
-                        shape="circle"
+                        shape='circle'
                         onClick={() => setCenter({ ...defaultCenter })}
                       />
                     </Tooltip>
@@ -164,56 +170,62 @@ const AdsMap: FC<AdsMapProps> = ({
             <GoogleMap
               zoom={zoom}
               center={center}
-              mapContainerClassName="google-map"
-              mapContainerStyle={{ width: "100%", height: "100%" }}
+              mapContainerClassName='google-map'
+              mapContainerStyle={{ width: '100%', height: '100%' }}
               onLoad={handleOnLoadMap}
               onClick={handleClickOnMap}
               onUnmount={handleOnDestroyMap}
               options={{
                 styles: [
                   {
-                    featureType: "all",
-                    elementType: "labels.text",
+                    featureType: 'all',
+                    elementType: 'labels.text',
                     stylers: [
                       {
-                        visibility: "off",
+                        visibility: 'off',
                       },
                     ],
                   },
                   {
-                    featureType: "poi",
-                    elementType: "labels.icon",
+                    featureType: 'poi',
+                    elementType: 'labels.icon',
                     stylers: [
                       {
-                        visibility: "off",
+                        visibility: 'off',
                       },
                     ],
                   },
                 ],
-              }}
-            >
+              }}>
               <>
-                {center && (
-                  <Marker
-                    draggable
-                    position={center}
-                    onDragEnd={console.log}
-                  ></Marker>
-                )}
+                {center && <Marker draggable position={center} onDragEnd={console.log}></Marker>}
                 {bounds.length && (
                   <>
                     <Polygon
                       path={bounds}
                       options={{
-                        fillColor: "#87CEFA",
+                        fillColor: '#87CEFA',
                         fillOpacity: 0,
-                        strokeColor: "#FFA07A",
+                        strokeColor: '#FFA07A',
                         strokeOpacity: 1,
                         strokeWeight: 2,
                       }}
                     />
                   </>
                 )}
+                {spaces.map((space) => (
+                  <Marker
+                    key={space._id}
+                    position={{ lat: +space.lat, lng: +space.long }}
+                    icon={{
+                      path: window.google.maps.SymbolPath.CIRCLE,
+                      fillColor: 'blue',
+                      fillOpacity: 1,
+                      strokeColor: 'black',
+                      strokeWeight: 2,
+                      scale: 10,
+                    }}></Marker>
+                ))}
               </>
             </GoogleMap>
           </>
