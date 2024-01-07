@@ -12,6 +12,7 @@ interface AdsInputProps {
   placeholder?: string;
   isDisabled?: boolean;
   isHidden?: boolean;
+  dependencies?:any;
 }
 
 const AdsInput: FC<AdsInputProps> = ({
@@ -24,12 +25,14 @@ const AdsInput: FC<AdsInputProps> = ({
   isPassword = false,
   isHidden = false,
   label = 'Form Control Label',
+  dependencies= null
 }) => {
   return (
     <>
-      <Form.Item label={label} validateStatus={error ? 'error' : ''} help={error && error.message} hidden={isHidden}>
+      <Form.Item label={label} validateStatus={error ? 'error' : ''} help={error && error.message} hidden={isHidden}  >
         <Controller
           name={name}
+          
           rules={rules}
           control={control}
           render={({ field }) =>
@@ -39,6 +42,7 @@ const AdsInput: FC<AdsInputProps> = ({
                 size='large'
                 disabled={isDisabled}
                 placeholder={placeholder}
+                
               />
             ) : (
               <Input {...field} size='large' disabled={isDisabled} placeholder={placeholder} />

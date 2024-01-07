@@ -157,7 +157,7 @@ const Home = () => {
         title={dialogDetail.dialogTitle}
         onCancel={closeActionDialog}>
         <>
-          {dialogDetail.dialogName === 'login' && <LoginDialog />}
+          {dialogDetail.dialogName === 'login' && <LoginDialog handleClose={(isOpen) => {setDialogDetail({ isOpen: isOpen, dialogTitle: null, dialogName: null })}} />}
           {dialogDetail.dialogName === 'register' && <RegisterDialog />}
         </>
       </AdsFormModal>

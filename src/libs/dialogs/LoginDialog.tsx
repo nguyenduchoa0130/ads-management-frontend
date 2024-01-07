@@ -1,31 +1,53 @@
+import { useAppDispatch } from '@appHook/hooks';
 import AdsCheckbox from '@components/AdsCheckbox';
 import AdsInput from '@components/AdsInput';
+import AlertType from '@enums/alert-type';
+import AlertService from '@services/alert.service';
+import { AuthService } from '@services/auth.service';
+import { sharedActions } from '@slices/shared.slice';
 import { Button, Form, Typography } from 'antd';
 import { useForm } from 'react-hook-form';
 
-const LoginDialog = () => {
+const LoginDialog = ({handleClose = (isOpen)=> {}}) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({ defaultValues: { email: '', password: '', isRemember: true } });
-
+  const dispatch = useAppDispatch();
   const login = async (formValue) => {
-    console.log(formValue);
+    try {
+      console.log(formValue);
+      const res = await AuthService.login(formValue);
+      const msg = res?.message;
+
+      localStorage.setItem('access_token', res.access_token);
+      localStorage.setItem('username', res.responseData.username);
+      localStorage.setItem('email', res.responseData?.email);
+      localStorage.setItem('role', res.responseData?.role);
+      dispatch(sharedActions.setCurrentUser(res.responseData));
+      handleClose(false)
+      AlertService.showMessage(AlertType.Success, msg);
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    }
+   
+   
   };
 
   return (
     <>
       <Form layout='vertical' className='pt-3' onFinish={handleSubmit(login)}>
         <AdsInput
-          name='email'
+          name='username'
           label='Email'
           control={control}
           error={errors.email}
-          placeholder='Nhập email'
+          placeholder='Nhập tên đăng nhập'
           rules={{
-            required: 'Vui lòng nhập email',
-            pattern: { value: /^\S+@\S+$/i, message: 'Email không hợp lệ' },
+            required: 'Vui lòng nhập tên đăng nhập',
+            // pattern: { value: /^\S+@\S+$/i, message: 'Email không hợp lệ' },
           }}
         />
         <AdsInput

@@ -477,7 +477,7 @@ const AdReports = () => {
                 shape="circle"
               ></Button>
             </Tooltip>
-            <Tooltip title="Xoá">
+            {/* <Tooltip title="Xoá">
               <Button
                 type="primary"
                 danger
@@ -495,7 +495,7 @@ const AdReports = () => {
                 shape="circle"
                 onClick={() => viewSurface(space)}
               ></Button>
-            </Tooltip>
+            </Tooltip> */}
           </Space>
         ),
       },
