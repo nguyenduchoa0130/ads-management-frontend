@@ -42,9 +42,10 @@ import {
   UploadProps,
   message,
 } from "antd";
-import moment from "moment";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import moment from 'moment';
 const MyProfile = () => {
 
   const [reloadTrigger, setReloadTrigger] = useState(false);
@@ -76,12 +77,18 @@ const MyProfile = () => {
     watch,
   } = useForm({
     defaultValues: {
-      ...user,
+      name: null,
+      username: null,
+      birthday: null,
+      phone: null,
+      email: null,
       re_password: null,
       createdAt: null,
       updatedAt: null,
       create_by: null,
       update_by: null,
+      _id: null,
+      password: null
     },
   });
   
@@ -96,7 +103,20 @@ const MyProfile = () => {
         const fillData = users.responseData;
        
         setUser(fillData);
-        setValue('name', user.name);
+
+        setTimeout(() => {
+          setValue('name', fillData.name);
+          setValue('username', fillData.username);
+          if(fillData.birthday){
+            const date = fillData.birthday;
+            setValue('birthday', moment(date));
+          }
+          setValue('phone', fillData.phone);
+          setValue('email', fillData.email);
+
+          dispatch(sharedActions.hideLoading());
+        })
+        
       
       } catch (error) {
         const msg = error?.response?.data?.message || error.message;
@@ -159,7 +179,31 @@ const MyProfile = () => {
     getSpaces();
   }, [reloadTrigger]);
 
-  return (<><Form layout="vertical">
+  const saveUser = async (formValue: User): Promise<void> => {
+    try {
+      dispatch(sharedActions.showLoading());
+
+      let res;
+      formValue._id = localStorage.getItem('_id');
+      if (formValue._id) {
+        res = await UserService.update(formValue);
+      }
+
+      
+
+      if (res) {
+        setReloadTrigger((prev) => !prev);
+        const msg = res?.message;
+        AlertService.showMessage(AlertType.Success, msg);
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message;
+      AlertService.showMessage(AlertType.Error, msg);
+    } finally {
+      dispatch(sharedActions.hideLoading());
+    }
+  };
+  return (<><Form layout="vertical" onFinish={handleSubmit(saveUser)}>
   <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24 }} >
     <Col span={12} className="gutter-row" style={{ display: "none" }}>
       <AdsInput
@@ -259,6 +303,11 @@ const MyProfile = () => {
       ></FormControlDropdown>
     </Col> */}
   </Row>
+  <div className='py-2'>
+          <Button size='large' type='primary' htmlType='submit' className='w-full' >
+            Cập nhật thông tin
+          </Button>
+        </div>
   {/* <div className="pt-1 pb-2 h-[600px]">
     <AdsMap onClickOnMap={getLongLat} lngLat={lngLat} />
   </div> */}
