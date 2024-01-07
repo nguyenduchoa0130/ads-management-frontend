@@ -58,6 +58,26 @@ const App = () => {
           path: "thong-tin-ca-nhan",
           element: <LazyLoadComponent component={<MyProfile />} />,
         },
+        {
+          path: "ql-bao-cao",
+          element: <LazyLoadComponent component={<AdReports />} />,
+        },
+        {
+          path: "ql-diem-dat-quang-cao",
+          element: <LazyLoadComponent component={<AdPlacements />} />,
+        },
+        {
+          path: "ql-bang-quang-cao",
+          element: <LazyLoadComponent component={<AdBoards />} />,
+        },
+        {
+          path: "yc-chinh-sua",
+          element: <LazyLoadComponent component={<AdApprovalCRList />} />,
+        },
+        {
+          path: "yc-cap-phep",
+          element: <LazyLoadComponent component={<AdPermitApprovalList />} />,
+        },
       ],
     },
 
@@ -66,8 +86,28 @@ const App = () => {
       element: <AdminLayout adminRole={AdminRole.DistrictOfficer} user={user} />,
       children: [
         {
+          path: "ql-bao-cao",
+          element: <LazyLoadComponent component={<AdReports />} />,
+        },
+        {
           path: "thong-tin-ca-nhan",
           element: <LazyLoadComponent component={<MyProfile />} />,
+        },
+        {
+          path: "ql-diem-dat-quang-cao",
+          element: <LazyLoadComponent component={<AdPlacements />} />,
+        },
+        {
+          path: "ql-bang-quang-cao",
+          element: <LazyLoadComponent component={<AdBoards />} />,
+        },
+        {
+          path: "yc-chinh-sua",
+          element: <LazyLoadComponent component={<AdApprovalCRList />} />,
+        },
+        {
+          path: "yc-cap-phep",
+          element: <LazyLoadComponent component={<AdPermitApprovalList />} />,
         },
       ],
     },

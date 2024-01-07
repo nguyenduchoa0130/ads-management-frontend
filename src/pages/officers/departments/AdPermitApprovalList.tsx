@@ -374,30 +374,46 @@ const AdPermitApprovalList = () => {
         dataIndex: null,
         key: "actions",
         render: (_, space: SpaceContract) =>
-          space.state == 1 ? (
-            <Space>
-              <Tooltip title="Phê duyệt điểm đặt bảng quảng cáo">
-                <Button
-                  onClick={() => createSpaceContract(space)}
-                  size="large"
-                  icon={<CheckOutlined />}
-                  shape="circle"
-                ></Button>
-              </Tooltip>
-              <Tooltip title="Xoá">
-                <Button
-                  type="primary"
-                  danger
-                  size="large"
-                  icon={<DeleteOutlined />}
-                  shape="circle"
-                  onClick={() => deleteSpace(space)}
-                ></Button>
-              </Tooltip>
-            </Space>
-          ) : (
-            ""
-          ),
+         {
+          if (space.state == 1) {
+            if (role == AdminRole.DepartmentOfficer) {
+              return(<Space>
+                <Tooltip title="Phê duyệt bảng quảng cáo">
+                  <Button
+                    onClick={() => createSpaceContract(space)}
+                    size="large"
+                    icon={<CheckOutlined />}
+                    shape="circle"
+                  ></Button>
+                </Tooltip>
+                <Tooltip title="Xoá">
+                  <Button
+                    type="primary"
+                    danger
+                    size="large"
+                    icon={<DeleteOutlined />}
+                    shape="circle"
+                    onClick={() => deleteSpace(space)}
+                  ></Button>
+                </Tooltip>
+              </Space>);
+            } else {
+              return (<Space>
+                <Tooltip title="Xoá">
+                  <Button
+                    type="primary"
+                    danger
+                    size="large"
+                    icon={<DeleteOutlined />}
+                    shape="circle"
+                    onClick={() => deleteSpace(space)}
+                  ></Button>
+                </Tooltip>
+              </Space>)
+            };
+          }
+         }
+            
       },
     ],
     [spaceContracts.length]
@@ -468,14 +484,6 @@ const AdPermitApprovalList = () => {
               </Space>);
             } else {
               return (<Space>
-                <Tooltip title="Cập nhật bảng quảng cáo">
-                  <Button
-                    onClick={() => editSurface(space)}
-                    size="large"
-                    icon={<EditOutlined />}
-                    shape="circle"
-                  ></Button>
-                </Tooltip>
                 <Tooltip title="Xoá">
                   <Button
                     type="primary"
@@ -520,7 +528,7 @@ const AdPermitApprovalList = () => {
   };
   return (
     <>
-      <Button
+      {/* <Button
         size="large"
         icon={<PlusOutlined />}
         className="mb-3 mr-3"
@@ -535,7 +543,7 @@ const AdPermitApprovalList = () => {
         onClick={openNewSurfaceModal}
       >
         TẠO CẤP PHÉP BẢNG QC
-      </Button>
+      </Button> */}
       <Tabs defaultActiveKey="1" items={items} onChange={onChangeTabs} />
 
       <AdsFormModal

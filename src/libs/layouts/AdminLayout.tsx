@@ -85,7 +85,72 @@ const DEPARTMENT_OFFICER_MENU: LayoutMenuItem[] = [
     icon: <QuestionCircleOutlined />,
   },
 ];
+const WARD_OFFICER_MENU: LayoutMenuItem[] = [
+  {
+    path: "ql-bao-cao",
+    label: "Quản lý báo cáo",
+    activeKey: "ql-bao-cao",
+    icon: <WarningFilled />,
+  },
 
+  {
+    path: "ql-diem-dat-quang-cao",
+    label: "Quản lý điểm đặt quảng cáo",
+    activeKey: "ql-diem-dat-quang-cao",
+    icon: <FlagOutlined />,
+  },
+  {
+    path: "ql-bang-quang-cao",
+    label: "Quản lý bảng quảng cáo",
+    activeKey: "ql-bang-quang-cao",
+    icon: <AppstoreOutlined />,
+  },
+  // {
+  //   path: "yc-chinh-sua",
+  //   label: "Yêu cầu chỉnh sửa quảng cáo",
+  //   activeKey: "yc-chinh-sua",
+  //   icon: <EditOutlined />,
+  // },
+   {
+    path: "yc-cap-phep",
+    label: "Yêu cầu cấp phép quảng cáo",
+    activeKey: "yc-cap-phep",
+    icon: <QuestionCircleOutlined />,
+  },
+];
+const DISTRICT_OFFICER_MENU: LayoutMenuItem[] = [
+  {
+    path: "ql-bao-cao",
+    label: "Quản lý báo cáo",
+    activeKey: "ql-bao-cao",
+    icon: <WarningFilled />,
+  },
+
+  {
+    path: "ql-diem-dat-quang-cao",
+    label: "Quản lý điểm đặt quảng cáo",
+    activeKey: "ql-diem-dat-quang-cao",
+    icon: <FlagOutlined />,
+  },
+  {
+    path: "ql-bang-quang-cao",
+    label: "Quản lý bảng quảng cáo",
+    activeKey: "ql-bang-quang-cao",
+    icon: <AppstoreOutlined />,
+  },
+  // {
+  //   path: "yc-chinh-sua",
+  //   label: "Yêu cầu chỉnh sửa quảng cáo",
+  //   activeKey: "yc-chinh-sua",
+  //   icon: <EditOutlined />,
+  // },
+   {
+    path: "yc-cap-phep",
+    label: "Yêu cầu cấp phép quảng cáo",
+    activeKey: "yc-cap-phep",
+    icon: <QuestionCircleOutlined />,
+  },
+];
 interface AdminLayoutProps {
   adminRole: AdminRole;
   user: any;
@@ -98,11 +163,13 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole, user }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.clear();
     navigate("/");
   };
   const handleInfo = () => {
-    switch (user.role) {
-      case AdminRole.WardOfficer: {
+    
+    switch (Number.parseInt(user.role)) {
+      case 1: {
         navigate("/can-bo-phuong/thong-tin-ca-nhan");
         break;
       }
@@ -119,10 +186,10 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole, user }) => {
   const menuItems = useMemo((): LayoutMenuItem[] => {
     switch (adminRole) {
       case AdminRole.WardOfficer: {
-        return [];
+        return WARD_OFFICER_MENU;
       }
       case AdminRole.DistrictOfficer: {
-        return [];
+        return DISTRICT_OFFICER_MENU;
       }
       case AdminRole.DepartmentOfficer: {
         return DEPARTMENT_OFFICER_MENU;
@@ -252,7 +319,7 @@ const AdminLayout: FC<AdminLayoutProps> = ({ adminRole, user }) => {
                       className="flex  flex-row-reverse items-center justify-center gap-2"
                     >
                       <span className="font-medium text-green-500">
-                        Department Officer
+                        {user.name}
                       </span>
                       <span>Xin chào,</span>
                     </Button>

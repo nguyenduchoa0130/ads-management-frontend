@@ -52,7 +52,7 @@ const AdBoards = () => {
   const [wards, setSpaces] = useState<AdsSpace[]>([]);
   const [lngLat, setLngLat] = useState<AdsLocation>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [role, setRole] = useState(2);
+  const [role, setRole] = useState(Number.parseInt(localStorage.getItem('role')));
   const [types, setTypes] = useState<AdsType[]>([]);
   const [formats, setFormats] = useState<AdsType[]>([]);
   const [spaceOptions, setSpaceOptions] = useState<DropDownOption<string>[]>(
@@ -150,8 +150,9 @@ const AdBoards = () => {
         dataIndex: null,
         key: "actions",
         render: (_, space: AdsSurface) => {
+          
           if (role == AdminRole.DepartmentOfficer)
-            <Space>
+            return <Space>
               <Tooltip title="Cập nhật">
                 <Button
                   onClick={() => editSurface(space)}
@@ -364,6 +365,7 @@ const AdBoards = () => {
       }
     };
 
+    
     getSurfaces();
     getTypes();
     getSpaces();
@@ -379,6 +381,7 @@ const AdBoards = () => {
   };
 
   return (
+
     <>
       {role == AdminRole.DepartmentOfficer ? (
         <Button

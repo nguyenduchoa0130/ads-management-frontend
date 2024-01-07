@@ -11,6 +11,7 @@ import AdsDynamicTable from "@components/AdsDynamicTable";
 import AdsFormModal from "@components/AdsFormModal";
 import AdsInput from "@components/AdsInput";
 import AdsMap from "@components/AdsMap";
+import { AdminRole } from "@enums/admin-role";
 import AlertType from "@enums/alert-type";
 import { AdsLocation } from "@interfaces/ads-location";
 import { AdsSpace } from "@interfaces/ads-space";
@@ -48,7 +49,7 @@ const AdPlacements = () => {
     []
   );
 
-  const [role, setRole] = useState(2);
+  const [role, setRole] = useState(Number.parseInt(localStorage.getItem('role')));
 
   const [isOpenSpace, setIsOpenSpace] = useState<boolean>(false);
   const openNewSpaceEditModal = useCallback(() => {
@@ -229,7 +230,7 @@ const AdPlacements = () => {
         dataIndex: null,
         key: "actions",
         render: (_, space: AdsSpace) => {
-          if (role == 1)
+          if (role == AdminRole.DepartmentOfficer)
             return (
               <Space>
                 <Tooltip title="Cập nhật">
@@ -378,7 +379,7 @@ const AdPlacements = () => {
   };
   return (
     <>
-      {role == 1 ? (
+      {role == AdminRole.DepartmentOfficer ? (
         <Button
           size="large"
           icon={<PlusOutlined />}

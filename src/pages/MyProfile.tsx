@@ -103,7 +103,7 @@ const MyProfile = () => {
         const fillData = users.responseData;
        
         setUser(fillData);
-
+        localStorage.setItem('name', users.responseData.name)
         setTimeout(() => {
           setValue('name', fillData.name);
           setValue('username', fillData.username);
@@ -192,6 +192,8 @@ const MyProfile = () => {
       
 
       if (res) {
+        console.log(res.responseData);
+       
         setReloadTrigger((prev) => !prev);
         const msg = res?.message;
         AlertService.showMessage(AlertType.Success, msg);
